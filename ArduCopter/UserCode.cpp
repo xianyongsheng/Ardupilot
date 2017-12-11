@@ -1,10 +1,12 @@
 #include "Copter.h"
+#include "rplidar.h"
 
 #ifdef USERHOOK_INIT
 void Copter::userhook_init()
 {
     // put your initialisation code here
     // this will be called once at start-up
+    rplidar_init();
 }
 #endif
 
@@ -19,6 +21,7 @@ void Copter::userhook_FastLoop()
 void Copter::userhook_50Hz()
 {
     // put your 50Hz code here
+    rplidar_rev();
 }
 #endif
 

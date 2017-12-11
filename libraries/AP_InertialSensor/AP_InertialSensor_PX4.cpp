@@ -16,6 +16,9 @@ const extern AP_HAL::HAL& hal;
 
 #include <stdio.h>
 
+#define DRV_ACC_DEVTYPE_ADIS16488 0x17
+#define DRV_GYR_DEVTYPE_ADIS16488 0X25
+
 AP_InertialSensor_PX4::AP_InertialSensor_PX4(AP_InertialSensor &imu) :
     AP_InertialSensor_Backend(imu)
 {

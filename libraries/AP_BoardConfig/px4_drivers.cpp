@@ -49,6 +49,9 @@ extern "C" {
     int px4io_main(int, char **);
     int adc_main(int, char **);
     int tone_alarm_main(int, char **);
+    int adis16488_main(int, char **);
+    int mb12xx_main(int, char **);
+    int ms5611_main(int, char **);
 };
 
 /*
@@ -523,11 +526,13 @@ void AP_BoardConfig::px4_autodetect(void)
         // PHMINI has an ICM20608 and MPU9250 on sensor bus
         px4.board_type.set(PX4_BOARD_PHMINI);
         hal.console->printf("Detected PixhawkMini\n");
-    } else if (spi_check_register(HAL_INS_LSM9DS0_A_NAME, LSMREG_WHOAMI, LSM_WHOAMI_LSM303D) &&
-               (spi_check_register(HAL_INS_MPU60x0_NAME, MPUREG_WHOAMI, MPU_WHOAMI_MPU60X0) ||
+    } else if ( px4_start_driver(adis16488_main, "adis16488", "-X start") ||
+                spi_check_register(HAL_INS_LSM9DS0_A_NAME, LSMREG_WHOAMI, LSM_WHOAMI_LSM303D) ||
+                spi_check_register(HAL_INS_MPU60x0_NAME, MPUREG_WHOAMI, MPU_WHOAMI_MPU60X0) ||
                 spi_check_register(HAL_INS_ICM20608_NAME, MPUREG_WHOAMI, MPU_WHOAMI_ICM20608) ||
                 spi_check_register(HAL_INS_ICM20608_NAME, MPUREG_WHOAMI, MPU_WHOAMI_ICM20602) ||
-                spi_check_register(HAL_INS_MPU9250_NAME, MPUREG_WHOAMI, MPU_WHOAMI_MPU9250))) {
+                spi_check_register(HAL_INS_MPU9250_NAME, MPUREG_WHOAMI, MPU_WHOAMI_MPU9250)
+               ) {
 
         // classic or upgraded Pixhawk1
         px4.board_type.set(PX4_BOARD_PIXHAWK);
@@ -547,7 +552,12 @@ void AP_BoardConfig::px4_autodetect(void)
     px4.board_type.set_and_notify(PX4_BOARD_AEROFC);
     hal.console->printf("Detected Aero FC\n");
 #endif
-
+/*    if (px4_start_driver(mb12xx_main, "mb12xx", "start")) {
+           hal.console-> printf("Found mb12xx sensor\n");
+        }
+    if (px4_start_driver(ms5611_main, "ms5611", "start")) {
+            printf("ms5611 started OK\n");
+        }*/
 }
 
 /*
