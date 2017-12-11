@@ -22,6 +22,9 @@ MODULES		+= drivers/px4fmu
 #MODULES	+= drivers/hott_telemetry
 #MODULES	+= drivers/blinkm
 #MODULES	+= modules/sensors
+MODULES		+= drivers/adis16488
+MODULES		+= drivers/mb12xx
+#MODULES		+= drivers/ms5611
 
 #
 # System commands
@@ -46,6 +49,8 @@ endif
 MODULES		+= modules/systemlib
 MODULES		+= modules/systemlib/mixer
 MODULES		+= modules/uORB
+MODULES		+= lib/mathlib/math/filter
+MODULES		+= lib/conversion
 
 # Note: auth disabled to keep us under 1MB flash because of STM32 bug
 #ifneq ($(wildcard $(PX4_ROOT)/src/systemcmds/auth),)  
