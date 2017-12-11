@@ -27,16 +27,47 @@ AP_BattMonitor_Backend::AP_BattMonitor_Backend(AP_BattMonitor &mon, AP_BattMonit
         _state(mon_state)
 {
 }
+#define battery_type 12
+
+uint16_t voltage_table_v[28] = {    422,416,415,414,412,410,408,405,403,397,393,390,387,384,381,379,377,376,374,373,372,371,366,365,364,363,361,359};
+uint8_t  voltage_table_mah[28] = { 100,100, 99, 97, 95, 92, 90, 87, 85, 80, 75, 70, 65, 60, 55, 50, 45, 42, 35, 30, 25, 15, 12, 10,  8,  5,  3,  1};
 
 /// capacity_remaining_pct - returns the % battery capacity remaining (0 ~ 100)
 uint8_t AP_BattMonitor_Backend::capacity_remaining_pct() const
 {
+    static float mah_init=456.78;
+
+    if(mah_init==456.78f)
+    {
+        uint16_t voltage;
+        uint8_t i;
+
+        voltage = _state.voltage*100;
+        for(i=0;i<28;i++){
+            if(voltage > (voltage_table_v[i]*battery_type)){
+                    mah_init = ((100 - voltage_table_mah[i]) * _mon._pack_capacity[_state.instance]) *0.01f;
+                    break;
+            }else if(i==27){
+                mah_init = _mon._pack_capacity[_state.instance];
+                break;
+            }
+        }
+    }
+    float mah_remaining = _mon._pack_capacity[_state.instance] - _state.current_total_mah - mah_init;
+    if(mah_remaining<0)mah_remaining=0;
+    if ( _mon._pack_capacity[_state.instance] > 10 ) { // a very very small battery
+        return (100 * (mah_remaining) / _mon._pack_capacity[_state.instance]);
+    } else {
+        return 0;
+    }
+/*
     float mah_remaining = _mon._pack_capacity[_state.instance] - _state.current_total_mah;
     if ( _mon._pack_capacity[_state.instance] > 10 ) { // a very very small battery
         return (100 * (mah_remaining) / _mon._pack_capacity[_state.instance]);
     } else {
         return 0;
     }
+    */
 }
 
 /// get capacity for this instance

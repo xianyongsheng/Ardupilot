@@ -87,6 +87,15 @@ bool AP_InertialSensor_PX4::_init_sensor(void)
         ioctl(fd, GYROIOCSRANGE, 2000);
 
         switch(devid) {
+        /**/        case DRV_GYR_DEVTYPE_ADIS16488:
+                        // hardware LPF off
+                        ioctl(fd, GYROIOCSHWLOWPASS, 256);
+                        // khz sampling
+                        ioctl(fd, GYROIOCSSAMPLERATE, 1000);
+                        ioctl(fd, SENSORIOCSPOLLRATE, SENSOR_POLLRATE_MANUAL);
+                        // set queue depth
+                        ioctl(fd, SENSORIOCSQUEUEDEPTH, _queue_depth(1000));
+                        break;
             case DRV_GYR_DEVTYPE_MPU6000:
             case DRV_GYR_DEVTYPE_MPU9250:
                 // hardware LPF off
@@ -126,6 +135,15 @@ bool AP_InertialSensor_PX4::_init_sensor(void)
         ioctl(fd, ACCELIOCSRANGE, 16);
 
         switch(devid) {
+        /**/        case DRV_ACC_DEVTYPE_ADIS16488:
+            // hardware LPF off
+            ioctl(fd, ACCELIOCSHWLOWPASS, 256);
+            // khz sampling
+            ioctl(fd, ACCELIOCSSAMPLERATE, 1000);
+            ioctl(fd, SENSORIOCSPOLLRATE, SENSOR_POLLRATE_MANUAL);
+            // 10ms queue depth
+            ioctl(fd, SENSORIOCSQUEUEDEPTH, _queue_depth(1000));
+            break;
             case DRV_ACC_DEVTYPE_MPU6000:
             case DRV_ACC_DEVTYPE_MPU9250:
                 // hardware LPF off
@@ -262,19 +280,19 @@ void AP_InertialSensor_PX4::_get_sample()
             // check the next gyro measurement to see if it needs to be integrated first
             if(gyro_valid && accel_valid && gyro_report.timestamp <= accel_report.timestamp) {
                 _new_gyro_sample(i,gyro_report);
-                gyro_valid = _get_gyro_sample(i,gyro_report);
+                gyro_valid = 0;//gyro_valid = _get_gyro_sample(i,gyro_report);
                 continue;
             }
             // if not, try to integrate an accelerometer sample
             if(accel_valid) {
                 _new_accel_sample(i,accel_report);
-                accel_valid = _get_accel_sample(i,accel_report);
+                accel_valid = 0;//accel_valid = _get_accel_sample(i,accel_report);
                 continue;
             }
             // if not, we've only got gyro samples left in the buffer
             if(gyro_valid) {
                 _new_gyro_sample(i,gyro_report);
-                gyro_valid = _get_gyro_sample(i,gyro_report);
+                gyro_valid = 0;//gyro_valid = _get_gyro_sample(i,gyro_report);
             }
         }
     }
