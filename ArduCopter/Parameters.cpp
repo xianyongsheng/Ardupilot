@@ -887,7 +887,11 @@ const AP_Param::Info Copter::var_info[] = {
     // @Group: 
     // @Path: Parameters.cpp
     GOBJECT(g2, "",  ParametersG2),
-    
+
+    GSCALAR(rpl_scale_p, "RPL_SCALE_P", 0),
+    GSCALAR(rpl_rol_dist_cm, "RPL_ROL_DIST_CM", 0),
+    GSCALAR(rpl_pit_dist_cm, "RPL_PIT_DIST_CM", 0),
+
     AP_VAREND
 };
 

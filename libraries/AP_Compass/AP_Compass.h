@@ -339,6 +339,7 @@ private:
         DRIVER_UAVCAN   =11,
         DRIVER_QMC5883  =12,
         DRIVER_SITL     =13,
+        DRIVER_ADI16488 =14,
     };
 
     bool _driver_enabled(enum DriverType driver_type);

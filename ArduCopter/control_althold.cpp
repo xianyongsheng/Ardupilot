@@ -1,5 +1,5 @@
 #include "Copter.h"
-
+#include "rplidar.h"
 
 /*
  * Init and run calls for althold, flight mode
@@ -41,7 +41,7 @@ void Copter::althold_run()
     // get pilot desired lean angles
     float target_roll, target_pitch;
     get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, attitude_control->get_althold_lean_angle_max());
-
+//rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm,g.rpl_scale_p);
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 

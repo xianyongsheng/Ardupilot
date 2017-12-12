@@ -19,6 +19,7 @@
 #include "AP_Compass_LIS3MDL.h"
 #include "AP_Compass_AK09916.h"
 #include "AP_Compass_QMC5883L.h"
+#include "AP_Compass_PX4.h"
 #if HAL_WITH_UAVCAN
 #include "AP_Compass_UAVCAN.h"
 #endif
@@ -650,17 +651,29 @@ void Compass::_detect_backends(void)
     }
     switch (AP_BoardConfig::get_board_type()) {
     case AP_BoardConfig::PX4_BOARD_PIXHAWK:
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_PX4::detect(*this), nullptr, false);
         ADD_BACKEND(DRIVER_HMC5883, AP_Compass_HMC5843::probe(*this, hal.spi->get_device(HAL_COMPASS_HMC5843_NAME),
                                                               false, ROTATION_PITCH_180),
                     AP_Compass_HMC5843::name, false);
         ADD_BACKEND(DRIVER_LSM303D, AP_Compass_LSM303D::probe(*this, hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME)),
                     AP_Compass_LSM303D::name, false);
         // IST8310 on external and internal bus
-        ADD_BACKEND(DRIVER_IST8310, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0E),
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0E),
                                                               true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-        ADD_BACKEND(DRIVER_IST8310, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0E),
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0E),
                                                               true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x1C),
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x1C),
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+/*        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0F),
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0F),
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x1E),
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+        ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x1E),
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);*/
         break;
 
     case AP_BoardConfig::PX4_BOARD_PIXHAWK2:

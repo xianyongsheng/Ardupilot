@@ -21,7 +21,7 @@
 
 #include "ap_version.h"
 #include "GCS.h"
-
+#include "../ArduCopter/rplidar.h"
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 #include <drivers/drv_pwm_output.h>
 #include <sys/types.h>
@@ -1504,12 +1504,15 @@ void GCS_MAVLINK::send_servo_output_raw(bool hil)
             values[i] = 0;
         }
     }    
+    uint16_t rpl_data[4];
+    rplidar_getdist(rpl_data);
     mavlink_msg_servo_output_raw_send(
             chan,
             AP_HAL::micros(),
             0,     // port
             values[0],  values[1],  values[2],  values[3],
-            values[4],  values[5],  values[6],  values[7],
+            rpl_data[0],rpl_data[1],rpl_data[2],rpl_data[3],
+            //values[4],  values[5],  values[6],  values[7],
             values[8],  values[9],  values[10], values[11],
             values[12], values[13], values[14], values[15]);
 }

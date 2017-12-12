@@ -366,10 +366,16 @@ public:
         k_param_DataFlash = 253, // 253 - Logging Group
 
         // 254,255: reserved
-
+        k_param_rpl_scale_p = 254,
+        k_param_rpl_rol_dist_cm = 255,
+        k_param_rpl_pit_dist_cm = 256,
         // the k_param_* space is 9-bits in size
         // 511: reserved
     };
+
+    AP_Float        rpl_scale_p;
+    AP_Int16        rpl_rol_dist_cm;
+    AP_Int16        rpl_pit_dist_cm;
 
     AP_Int16        format_version;
     AP_Int8         software_type;

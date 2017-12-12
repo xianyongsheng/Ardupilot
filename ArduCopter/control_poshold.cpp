@@ -1,4 +1,5 @@
 #include "Copter.h"
+#include "rplidar.h"
 
 #if POSHOLD_ENABLED == ENABLED
 

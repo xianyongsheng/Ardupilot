@@ -179,3 +179,4 @@ Tools/Linux_HAL_Essentials/pru/rangefinderpru
 Tools/Linux_HAL_Essentials/pru/rcinpru
 Tools/Replay
 modules/PX4Firmware/src/drivers/adis16488
+modules/PX4Firmware/src/drivers/adis16488
