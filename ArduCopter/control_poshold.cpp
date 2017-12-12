@@ -206,6 +206,7 @@ void Copter::poshold_run()
     }else{
         // convert pilot input to lean angles
         get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max);
+        rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm,g.rpl_scale_p);
 
         // convert inertial nav earth-frame velocities to body-frame
         // To-Do: move this to AP_Math (or perhaps we already have a function to do this)

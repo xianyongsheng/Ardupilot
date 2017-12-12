@@ -12,7 +12,7 @@ _rplidar rplidar;
 
 #define D_BUFFER_MM  300
 #define R_MAX   4500
-void rplidar_get_input(float &target_roll, float &target_pitch, int16_t ROL_MIN, int16_t PIT_MIN, float scale)
+void rplidar_get_input(float *target_roll, float *target_pitch,int16_t ROL_MIN,int16_t PIT_MIN,const float scale)
 {
     if(!rplidar.read_begin||(!ROL_MIN&&!PIT_MIN)||(scale==0)) return;
     int16_t rol=0,pit=0,tmp=0;
@@ -36,28 +36,28 @@ void rplidar_get_input(float &target_roll, float &target_pitch, int16_t ROL_MIN,
     rpl_pitch_out = (float)pit/(float)PIT_MIN*(float)R_MAX*(float)scale;
 
 //
-    out_buffer=rpl_roll_out;    tar_buffer=target_roll;
+    out_buffer=rpl_roll_out;    tar_buffer=*target_roll;
     if(out_buffer!=0){
-        if((out_buffer>0&&tar_buffer<=0)||(out_buffer<0&&tar_buffer>=0))  target_roll=out_buffer;
+        if((out_buffer>0&&tar_buffer<=0)||(out_buffer<0&&tar_buffer>=0))  *target_roll=out_buffer;
     }else{
         if((((rpl_dis[2]>ROL_MIN)&&(rpl_dis[2]<(ROL_MIN+D_BUFFER_MM)))&&tar_buffer<0)||(((rpl_dis[3]>ROL_MIN)&&(rpl_dis[3]<(ROL_MIN+D_BUFFER_MM)))&&tar_buffer>0)){
-            target_roll=0;
+            *target_roll=0;
         }
     }
 
-    out_buffer=rpl_pitch_out;    tar_buffer=target_pitch;
+    out_buffer=rpl_pitch_out;    tar_buffer=*target_pitch;
     if(out_buffer!=0){
-        if((out_buffer>0&&tar_buffer<=0)||(out_buffer<0&&tar_buffer>=0))  target_pitch=out_buffer;
+        if((out_buffer>0&&tar_buffer<=0)||(out_buffer<0&&tar_buffer>=0))  *target_pitch=out_buffer;
     }else{
         if((((rpl_dis[2]>PIT_MIN)&&(rpl_dis[2]<(PIT_MIN+D_BUFFER_MM)))&&tar_buffer<0)||(((rpl_dis[3]>PIT_MIN)&&(rpl_dis[3]<(PIT_MIN+D_BUFFER_MM)))&&tar_buffer>0)){
-            target_pitch=0;
+            *target_pitch=0;
         }
     }
 
-    if(target_roll>R_MAX)    target_roll=R_MAX;
-    else if(target_roll<-R_MAX)    target_roll=-R_MAX;
-    if(target_pitch>R_MAX)    target_pitch=R_MAX;
-    else if(target_pitch<-R_MAX)    target_pitch=-R_MAX;
+    if(*target_roll>R_MAX)    *target_roll=R_MAX;
+    else if(*target_roll<-R_MAX)    *target_roll=-R_MAX;
+    if(*target_pitch>R_MAX)    *target_pitch=R_MAX;
+    else if(*target_pitch<-R_MAX)    *target_pitch=-R_MAX;
 /*
     static uint8_t cnt;
     if((++cnt)>=240){cnt=0;

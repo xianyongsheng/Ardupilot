@@ -51,5 +51,5 @@ uint8_t rev_GET_HEALTH(uint8_t* data,uint8_t len);
 uint8_t rplidar_read(uint8_t type);
 uint8_t rplidar_checksum(uint8_t *data);
 void rplidar_getdist(uint16_t *data);
-void rplidar_get_input(float &target_roll, float &target_pitch, int16_t ROL_MIN, int16_t PIT_MIN, float scale);
+void rplidar_get_input(float *target_roll, float *target_pitch, int16_t ROL_MIN, int16_t PIT_MIN, const float scale);
 uint16_t mid_data(uint16_t angle,uint8_t n);
