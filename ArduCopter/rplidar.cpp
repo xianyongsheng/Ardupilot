@@ -12,8 +12,13 @@ _rplidar rplidar;
 
 #define D_BUFFER_MM  300
 #define R_MAX   4500
-void rplidar_get_input(float *target_roll, float *target_pitch,int16_t ROL_MIN,int16_t PIT_MIN,const float scale)
+void rplidar_get_input(float *target_roll, float *target_pitch,int16_t ROL_MIN,int16_t PIT_MIN,const float scale,const float cur_alt)
 {
+        static uint8_t cnt;
+        if((++cnt)>=240){cnt=0;
+            copter.gcs_send_text_fmt(MAV_SEVERITY_WARNING,"#a:%0.2f \n",cur_alt);}
+
+    if(cur_alt<100) return;
     if(!rplidar.read_begin||(!ROL_MIN&&!PIT_MIN)||(scale==0)) return;
     int16_t rol=0,pit=0,tmp=0;
     int16_t rpl_roll_out,rpl_pitch_out,out_buffer,tar_buffer;

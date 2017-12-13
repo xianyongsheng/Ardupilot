@@ -150,6 +150,8 @@ public:
     void setup() override;
     void loop() override;
 
+    void gcs_send_text_fmt(MAV_SEVERITY severity, const char *fmt, ...);
+
 private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
@@ -1096,7 +1098,7 @@ private:
     void takeoff_get_climb_rates(float& pilot_climb_rate, float& takeoff_climb_rate);
     void print_hit_enter();
     void tuning();
-    void gcs_send_text_fmt(MAV_SEVERITY severity, const char *fmt, ...);
+//    void gcs_send_text_fmt(MAV_SEVERITY severity, const char *fmt, ...);
     bool start_command(const AP_Mission::Mission_Command& cmd);
     bool verify_command(const AP_Mission::Mission_Command& cmd);
     bool verify_command_callback(const AP_Mission::Mission_Command& cmd);
