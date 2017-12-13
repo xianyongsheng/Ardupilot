@@ -41,9 +41,9 @@ typedef struct  {
 #define EXPRESS_SCAN 	3
 #define SCAN            4
 
-void rplidar_init(void);
+void rplidar_init(float scale);
 void rplidar_run(void);
-void rplidar_rev(void);
+void rplidar_rev(float scale);
 uint8_t rplidar_handle(uint8_t *buff_data);
 uint8_t rev_SCAN(uint8_t* data,uint8_t len);
 uint8_t rev_EXPRESS_SCAN(uint8_t* data,uint8_t len);

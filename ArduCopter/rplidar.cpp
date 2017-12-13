@@ -3,7 +3,7 @@
 
 _rplidar rplidar;
 
-#define hal_uart hal.uartC
+#define hal_uart hal.uartC//
 #define hal_uart_send(x,l) hal_uart->write(x,l)
 #define hal_uart_avail() hal_uart->available()
 #define hal_uart_read() hal_uart->read()
@@ -67,8 +67,9 @@ void rplidar_get_input(float *target_roll, float *target_pitch,int16_t ROL_MIN,i
 */
 }
 
-void rplidar_init(void)
+void rplidar_init(float scale)
 {
+    if(scale==0) return;
     hal_uart->begin(115200,504,512);
     hal_uart->set_flow_control(AP_HAL::UARTDriver::FLOW_CONTROL_DISABLE);
     delay_ms(1000);
@@ -277,14 +278,9 @@ uint8_t rplidar_checksum(uint8_t *data)
 uint16_t test_times[10];
 static uint8_t databuff[504];
 static uint16_t datalen;
-void rplidar_rev(void)
+void rplidar_rev(float scale)
 {
-/*    static uint8_t cnt;
-    if((++cnt)>20){
-        cnt=0;
-        hal_uart_printf("#0:%d #1:%d #2:%d #3:%d #4:%d #5:%d #6:%d ava:%d\n",test_times[0],test_times[1],test_times[2],test_times[3],test_times[4],test_times[5],test_times[6],hal_uart_avail());
-    }
-*/
+    if(scale==0) return;
 
     static uint8_t data_timeout_cnt=0;
     if((++data_timeout_cnt)>=10){
