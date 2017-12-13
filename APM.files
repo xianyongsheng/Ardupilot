@@ -325,6 +325,8 @@ libraries/AP_Baro/AP_Baro_HIL.cpp
 libraries/AP_Baro/AP_Baro_HIL.h
 libraries/AP_Baro/AP_Baro_MS5611.cpp
 libraries/AP_Baro/AP_Baro_MS5611.h
+libraries/AP_Baro/AP_Baro_PX4.cpp
+libraries/AP_Baro/AP_Baro_PX4.h
 libraries/AP_Baro/AP_Baro_qflight.cpp
 libraries/AP_Baro/AP_Baro_qflight.h
 libraries/AP_Baro/AP_Baro_QURT.cpp
@@ -405,6 +407,8 @@ libraries/AP_Compass/AP_Compass_LSM9DS1.cpp
 libraries/AP_Compass/AP_Compass_LSM9DS1.h
 libraries/AP_Compass/AP_Compass_MMC3416.cpp
 libraries/AP_Compass/AP_Compass_MMC3416.h
+libraries/AP_Compass/AP_Compass_PX4.cpp
+libraries/AP_Compass/AP_Compass_PX4.h
 libraries/AP_Compass/AP_Compass_qflight.cpp
 libraries/AP_Compass/AP_Compass_qflight.h
 libraries/AP_Compass/AP_Compass_QMC5883L.cpp
@@ -1821,7 +1825,3 @@ Tools/Replay/Parameters.h
 Tools/Replay/Replay.cpp
 Tools/Replay/Replay.h
 Tools/Replay/VehicleType.h
-libraries/AP_Compass/AP_Compass_PX4.cpp
-libraries/AP_Compass/AP_Compass_PX4.h
-libraries/AP_Baro/AP_Baro_PX4.cpp
-libraries/AP_Baro/AP_Baro_PX4.h
