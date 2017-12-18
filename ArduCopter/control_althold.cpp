@@ -155,6 +155,13 @@ rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm
         // call attitude controller
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 
+        if(target_climb_rate<0){
+            float rng_alt=rangefinder_state.alt_cm;
+            if(rng_alt < 300){
+                if(rng_alt<=50) rng_alt=50;
+                target_climb_rate /= (800/rng_alt);
+            }
+        }
         // adjust climb rate using rangefinder
         if (rangefinder_alt_ok()) {
             // if rangefinder is ok, use surface tracking

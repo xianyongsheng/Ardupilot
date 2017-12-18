@@ -151,6 +151,14 @@ public:
     void loop() override;
 
     void gcs_send_text_fmt(MAV_SEVERITY severity, const char *fmt, ...);
+    struct {
+        bool enabled:1;
+        bool alt_healthy:1; // true if we can trust the altitude from the rangefinder
+        int16_t alt_cm;     // tilt compensated altitude (in cm) from rangefinder
+        uint32_t last_healthy_ms;
+        LowPassFilterFloat alt_cm_filt; // altitude filter
+        int8_t glitch_count;
+    } rangefinder_state = { false, false, 0, 0 };
 
 private:
     // key aircraft parameters passed to multiple libraries
@@ -196,14 +204,7 @@ private:
     AP_InertialSensor ins;
 
     RangeFinder rangefinder {serial_manager, ROTATION_PITCH_270};
-    struct {
-        bool enabled:1;
-        bool alt_healthy:1; // true if we can trust the altitude from the rangefinder
-        int16_t alt_cm;     // tilt compensated altitude (in cm) from rangefinder
-        uint32_t last_healthy_ms;
-        LowPassFilterFloat alt_cm_filt; // altitude filter
-        int8_t glitch_count;
-    } rangefinder_state = { false, false, 0, 0 };
+
 
     AP_RPM rpm_sensor;
 
