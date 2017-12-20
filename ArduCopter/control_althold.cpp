@@ -41,7 +41,7 @@ void Copter::althold_run()
     // get pilot desired lean angles
     float target_roll, target_pitch;
     get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, attitude_control->get_althold_lean_angle_max());
-rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm,g.rpl_scale_p,inertial_nav.get_altitude());
+    rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm,g.rpl_scale_p,inertial_nav.get_altitude());
     // get pilot's desired yaw rate
     float target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 
@@ -155,24 +155,32 @@ rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm
         // call attitude controller
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 
-        if(target_climb_rate<0){
-            float rng_alt=rangefinder_state.alt_cm;
-            if(rng_alt < 300){
-                if(rng_alt<=50) rng_alt=50;
-                target_climb_rate /= (800/rng_alt);
+        bool force_descend=false;
+#if 1
+        if(target_climb_rate<0 && rangefinder_state.alt_cm<300.0f){
+            bool motor_at_lower_limit = motors->limit.throttle_lower && attitude_control->is_throttle_mix_min();
+            bool accel_stationary = (land_accel_ef_filter.get().length() <= LAND_DETECTOR_ACCEL_MAX);
+            bool descent_rate_low = fabsf(inertial_nav.get_velocity_z()) < 100.0f;
+            bool rangefinder_check = (!rangefinder_alt_ok() || rangefinder_state.alt_cm_filt.get() < 100.0f);
+            if(!(motor_at_lower_limit && descent_rate_low && accel_stationary && rangefinder_check)){
+                int32_t alt_above_ground = land_get_alt_above_ground();
+                target_climb_rate = AC_AttitudeControl::sqrt_controller(LAND_START_ALT-alt_above_ground, g.p_alt_hold.kP(), pos_control->get_accel_z());
+                //target_climb_rate = (target_climb_rate/g.pilot_velocity_z_max)*rangefinder_state.alt_cm*0.8f;//
+                target_climb_rate = MAX(target_climb_rate,-30.0f);
+                force_descend=true;
             }
         }
+#endif
         // adjust climb rate using rangefinder
         if (rangefinder_alt_ok()) {
             // if rangefinder is ok, use surface tracking
             target_climb_rate = get_surface_tracking_climb_rate(target_climb_rate, pos_control->get_alt_target(), G_Dt);
         }
-
         // get avoidance adjusted climb rate
         target_climb_rate = get_avoidance_adjusted_climbrate(target_climb_rate);
 
         // call position controller
-        pos_control->set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, false);
+        pos_control->set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, force_descend);
         pos_control->update_z_controller();
         break;
     }

@@ -206,7 +206,7 @@ void Copter::poshold_run()
     }else{
         // convert pilot input to lean angles
         get_pilot_desired_lean_angles(channel_roll->get_control_in(), channel_pitch->get_control_in(), target_roll, target_pitch, aparm.angle_max);
-rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm,g.rpl_scale_p,inertial_nav.get_altitude());
+        rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm,g.rpl_scale_p,inertial_nav.get_altitude());
 
         // convert inertial nav earth-frame velocities to body-frame
         // To-Do: move this to AP_Math (or perhaps we already have a function to do this)
@@ -528,6 +528,7 @@ rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm
         // update attitude controller targets
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(poshold.roll, poshold.pitch, target_yaw_rate, get_smoothing_gain());
 
+#if 0
         if(target_climb_rate<0){
             float rng_alt=rangefinder_state.alt_cm;
             if(rng_alt < 300){
@@ -535,6 +536,7 @@ rplidar_get_input(&target_roll,&target_pitch,g.rpl_rol_dist_cm,g.rpl_pit_dist_cm
                 target_climb_rate /= (800/rng_alt);
             }
         }
+#endif
         // adjust climb rate using rangefinder
         if (rangefinder_alt_ok()) {
             // if rangefinder is ok, use surface tracking
