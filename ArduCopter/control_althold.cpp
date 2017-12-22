@@ -156,7 +156,7 @@ void Copter::althold_run()
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 
         bool force_descend=false;
-#if 1
+#if 0
         if(target_climb_rate<0 && rangefinder_state.alt_cm<300.0f){
             bool motor_at_lower_limit = motors->limit.throttle_lower && attitude_control->is_throttle_mix_min();
             bool accel_stationary = (land_accel_ef_filter.get().length() <= LAND_DETECTOR_ACCEL_MAX);
