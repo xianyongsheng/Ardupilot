@@ -658,7 +658,7 @@ void Compass::_detect_backends(void)
         ADD_BACKEND(DRIVER_LSM303D, AP_Compass_LSM303D::probe(*this, hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME)),
                     AP_Compass_LSM303D::name, false);
         ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0F),
-                                                              true, ROTATION_NONE), AP_Compass_IST8310::name, true);
+                                                              true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
         ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0F),
                                                               true, ROTATION_NONE), AP_Compass_IST8310::name, true);
         break;

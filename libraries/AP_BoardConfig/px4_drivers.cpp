@@ -526,7 +526,7 @@ void AP_BoardConfig::px4_autodetect(void)
         // PHMINI has an ICM20608 and MPU9250 on sensor bus
         px4.board_type.set(PX4_BOARD_PHMINI);
         hal.console->printf("Detected PixhawkMini\n");
-    } else if ( px4_start_driver(adis16488_main, "adis16488", "-X start") ||
+    } else if ( /*px4_start_driver(adis16488_main, "adis16488", "-X start") ||*/
                 spi_check_register(HAL_INS_LSM9DS0_A_NAME, LSMREG_WHOAMI, LSM_WHOAMI_LSM303D) ||
                 spi_check_register(HAL_INS_MPU60x0_NAME, MPUREG_WHOAMI, MPU_WHOAMI_MPU60X0) ||
                 spi_check_register(HAL_INS_ICM20608_NAME, MPUREG_WHOAMI, MPU_WHOAMI_ICM20608) ||
