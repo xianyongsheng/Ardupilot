@@ -104,7 +104,7 @@ px4-v2: $(BUILDROOT)/make.flags CHECK_MODULES $(MAVLINK_HEADERS) $(UAVCAN_HEADER
 	$(v) cp $(PX4_ROOT)/Images/px4fmu-v2_APM.px4 $(SKETCH)-v2.px4
 	$(v) $(SKETCHBOOK)/Tools/scripts/add_git_hashes.py $(HASHADDER_FLAGS) "$(SKETCH)-v2.px4" "$(SKETCH)-v2.px4"
 	$(v) echo "PX4 $(SKETCH) Firmware is in $(SKETCH)-v2.px4"
-	$(v) cp ArduCopter-v2.px4 /mnt/hgfs/build/ArduCopter-3.5.4-final.px4
+	$(v) cp ArduCopter-v2.px4 /mnt/hgfs/build/ArduCopter-3.5.4-pixhawk.px4
 	$(v) echo "make finilsh of Times: `date '+%Y-%m-%d %T'`"
 
 px4-v3: $(BUILDROOT)/make.flags CHECK_MODULES $(MAVLINK_HEADERS) $(UAVCAN_HEADERS) $(PX4_ROOT)/Archives/px4fmu-v3.export $(SKETCHCPP) module_mk px4-io-v2
