@@ -415,7 +415,7 @@ bool AP_GPS_NMEA::_term_complete()
         case _GPS_SENTENCE_GGA + 7: // satellite count (GGA)
             _new_satellite_count = atol(_term);
             break;
-        case _GPS_SENTENCE_PSAT + 5:
+        //case _GPS_SENTENCE_PSAT + 5:
         case _GPS_SENTENCE_GGA + 8: // HDOP (GGA)
             _new_hdop = (uint16_t)_parse_decimal_100(_term);
             break;
