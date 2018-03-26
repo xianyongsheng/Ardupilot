@@ -435,7 +435,46 @@ AP_AHRS_DCM::drift_correction_yaw(void)
     float yaw_error;
     float yaw_deltat;
 
-    if (AP_AHRS_DCM::use_compass()) {
+    if ((_gps.ground_course_valid()) && have_gps()) {
+            /*
+              we are using GPS for yaw
+             */
+            if (_gps.last_fix_time_ms() != _gps_last_update /*&&
+                    _gps.ground_speed() >= GPS_SPEED_MIN*/) {
+                yaw_deltat = (_gps.last_fix_time_ms() - _gps_last_update) * 1.0e-3f;
+                _gps_last_update = _gps.last_fix_time_ms();
+                new_value = true;
+                float gps_course_rad = ToRad(_gps.ground_course_cd() * 0.01f);
+                float yaw_error_rad = wrap_PI(gps_course_rad - yaw);
+                yaw_error = sinf(yaw_error_rad);
+
+                /* reset yaw to match GPS heading under any of the
+                   following 3 conditions:
+
+                   1) if we have reached GPS_SPEED_MIN and have never had
+                   yaw information before
+
+                   2) if the last time we got yaw information from the GPS
+                   is more than 20 seconds ago, which means we may have
+                   suffered from considerable gyro drift
+
+                   3) if we are over 3*GPS_SPEED_MIN (which means 9m/s)
+                   and our yaw error is over 60 degrees, which means very
+                   poor yaw. This can happen on bungee launch when the
+                   operator pulls back the plane rapidly enough then on
+                   release the GPS heading changes very rapidly
+                */
+                if (!_flags.have_initial_yaw ||
+                        yaw_deltat > 20 ||
+                        (_gps.ground_speed() >= 3*GPS_SPEED_MIN && fabsf(yaw_error_rad) >= 1.047f)) {
+                    // reset DCM matrix based on current yaw
+                    _dcm_matrix.from_euler(roll, pitch, gps_course_rad);
+                    _omega_yaw_P.zero();
+                    _flags.have_initial_yaw = true;
+                    yaw_error = 0;
+                }
+            }
+        }else if (AP_AHRS_DCM::use_compass()) {
         /*
           we are using compass for yaw
          */
@@ -459,7 +498,7 @@ AP_AHRS_DCM::drift_correction_yaw(void)
             // don't suddenly change yaw with a reset
             _gps_last_update = _gps.last_fix_time_ms();
         }
-    } else if (_flags.fly_forward && have_gps()) {
+    } else if ((_flags.fly_forward || _gps.ground_course_valid()) && have_gps()) {
         /*
           we are using GPS for yaw
          */

@@ -10,3 +10,11 @@
 #else
 #define FIRMWARE_STRING THISFIRMWARE " (" GIT_VERSION ")"
 #endif
+
+/*
+ * 2.18.3.16
+ * add rtk gps to NMEA
+ * modify drift_correction_yaw 
+ *
+ *
+ */

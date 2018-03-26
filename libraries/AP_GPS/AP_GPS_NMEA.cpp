@@ -107,6 +107,8 @@ AP_GPS_NMEA::AP_GPS_NMEA(AP_GPS &_gps, AP_GPS::GPS_State &_state, AP_HAL::UARTDr
     gps.send_blob_start(state.instance, _initialisation_blob, sizeof(_initialisation_blob));
     // this guarantees that _term is always nul terminated
     memset(_term, 0, sizeof(_term));
+
+    state.ground_course_valid = false;
 }
 
 bool AP_GPS_NMEA::read(void)
@@ -262,11 +264,15 @@ uint32_t AP_GPS_NMEA::_parse_degrees()
  */
 bool AP_GPS_NMEA::_have_new_message()
 {
+    uint32_t now = AP_HAL::millis();
+    if((now - _last_PAST_ms < 150)&&(_last_PAST_ms != 0)){
+        _last_PAST_ms = 1;
+        return true;
+    }
     if (_last_RMC_ms == 0 ||
         _last_GGA_ms == 0) {
         return false;
     }
-    uint32_t now = AP_HAL::millis();
     if (now - _last_RMC_ms > 150 ||
         now - _last_GGA_ms > 150) {
         return false;
@@ -326,14 +332,30 @@ bool AP_GPS_NMEA::_term_complete()
                     fill_3d_velocity();
                     // VTG has no fix indicator, can't change fix status
                     break;
+                case _GPS_SENTENCE_PSAT:
+                    _last_PAST_ms = now;
+                    //state.num_sats      = _new_satellite_count;
+                    state.hdop          = _new_hdop;
+                    //make_gps_time(_new_date, _new_time * 10);
+                    state.location.lat     = _new_latitude;
+                    state.location.lng     = _new_longitude;
+                    state.ground_speed     = _new_speed*0.01f;
+                    state.ground_course    = wrap_360(_new_course*0.01f);
+                    state.last_gps_time_ms = now;
+                    // To-Do: add support for proper reporting of 2D and 3D fix
+                    state.status           = AP_GPS::GPS_OK_FIX_3D;
+                    fill_3d_velocity();
+                    break;
                 }
             } else {
                 switch (_sentence_type) {
+                case _GPS_SENTENCE_PSAT:
                 case _GPS_SENTENCE_RMC:
                 case _GPS_SENTENCE_GGA:
                     // Only these sentences give us information about
                     // fix status.
                     state.status = AP_GPS::NO_FIX;
+                    state.ground_course_valid = false;
                 }
             }
             // see if we got a good message
@@ -365,6 +387,9 @@ bool AP_GPS_NMEA::_term_complete()
             // VTG may not contain a data qualifier, presume the solution is good
             // unless it tells us otherwise.
             _gps_data_good = true;
+        }else if (strcmp(term_type, "AT") == 0){
+            _sentence_type = _GPS_SENTENCE_PSAT;
+            _gps_data_good = true;
         } else {
             _sentence_type = _GPS_SENTENCE_OTHER;
         }
@@ -379,21 +404,25 @@ bool AP_GPS_NMEA::_term_complete()
         case _GPS_SENTENCE_RMC + 2: // validity (RMC)
             _gps_data_good = _term[0] == 'A';
             break;
+        case _GPS_SENTENCE_PSAT + 27: //Fix data (PSAT)
         case _GPS_SENTENCE_GGA + 6: // Fix data (GGA)
             _gps_data_good = _term[0] > '0';
             break;
         case _GPS_SENTENCE_VTG + 9: // validity (VTG) (we may not see this field)
             _gps_data_good = _term[0] != 'N';
             break;
+        case _GPS_SENTENCE_PSAT + 25:
         case _GPS_SENTENCE_GGA + 7: // satellite count (GGA)
             _new_satellite_count = atol(_term);
             break;
+        case _GPS_SENTENCE_PSAT + 5:
         case _GPS_SENTENCE_GGA + 8: // HDOP (GGA)
             _new_hdop = (uint16_t)_parse_decimal_100(_term);
             break;
 
         // time and date
         //
+        case _GPS_SENTENCE_PSAT + 2:
         case _GPS_SENTENCE_RMC + 1: // Time (RMC)
         case _GPS_SENTENCE_GGA + 1: // Time (GGA)
             _new_time = _parse_decimal_100(_term);
@@ -404,6 +433,7 @@ bool AP_GPS_NMEA::_term_complete()
 
         // location
         //
+        case _GPS_SENTENCE_PSAT + 3:
         case _GPS_SENTENCE_RMC + 3: // Latitude
         case _GPS_SENTENCE_GGA + 2:
             _new_latitude = _parse_degrees();
@@ -413,6 +443,7 @@ bool AP_GPS_NMEA::_term_complete()
             if (_term[0] == 'S')
                 _new_latitude = -_new_latitude;
             break;
+        case _GPS_SENTENCE_PSAT + 4:
         case _GPS_SENTENCE_RMC + 5: // Longitude
         case _GPS_SENTENCE_GGA + 4:
             _new_longitude = _parse_degrees();
@@ -422,19 +453,23 @@ bool AP_GPS_NMEA::_term_complete()
             if (_term[0] == 'W')
                 _new_longitude = -_new_longitude;
             break;
+        case _GPS_SENTENCE_PSAT + 21:
         case _GPS_SENTENCE_GGA + 9: // Altitude (GPGGA)
             _new_altitude = _parse_decimal_100(_term);
             break;
 
         // course and speed
         //
+        case _GPS_SENTENCE_PSAT + 17:
         case _GPS_SENTENCE_RMC + 7: // Speed (GPRMC)
         case _GPS_SENTENCE_VTG + 5: // Speed (VTG)
             _new_speed = (_parse_decimal_100(_term) * 514) / 1000;       // knots-> m/sec, approximiates * 0.514
             break;
+        case _GPS_SENTENCE_PSAT + 9:
         case _GPS_SENTENCE_RMC + 8: // Course (GPRMC)
         case _GPS_SENTENCE_VTG + 1: // Course (VTG)
             _new_course = _parse_decimal_100(_term);
+            state.ground_course_valid = true;
             break;
         }
     }

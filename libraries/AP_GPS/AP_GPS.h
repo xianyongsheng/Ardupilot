@@ -141,6 +141,7 @@ public:
         bool have_horizontal_accuracy:1;    ///< does GPS give horizontal position accuracy? Set to true only once available.
         bool have_vertical_accuracy:1;      ///< does GPS give vertical position accuracy? Set to true only once available.
         uint32_t last_gps_time_ms;          ///< the system time we got the last GPS timestamp, milliseconds
+        bool ground_course_valid;
     };
 
     /// Startup initialisation.
@@ -223,6 +224,9 @@ public:
         return ground_speed() * 100;
     }
 
+    bool ground_course_valid(void)const {
+        return state[primary_instance].ground_course_valid;
+    }
     // ground course in degrees
     float ground_course(uint8_t instance) const {
         return state[instance].ground_course;
