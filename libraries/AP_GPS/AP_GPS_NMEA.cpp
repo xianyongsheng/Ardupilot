@@ -364,19 +364,21 @@ bool AP_GPS_NMEA::_term_complete()
                     state.ground_course    = wrap_360(_new_course*0.01f);
                     state.last_gps_time_ms = now;
                     // To-Do: add support for proper reporting of 2D and 3D fix
-                    state.status           = AP_GPS::GPS_OK_FIX_3D;
+                    state.status           = AP_GPS::GPS_OK_FIX_3D_RTK_FIXED;
                     fill_3d_velocity();
                     break;
                 }
             } else {
                 switch (_sentence_type) {
                 case _GPS_SENTENCE_PSAT:
+                    state.status = AP_GPS::NO_FIX;
+                    state.ground_course_valid = false;
+                    break;
                 case _GPS_SENTENCE_RMC:
                 case _GPS_SENTENCE_GGA:
                     // Only these sentences give us information about
                     // fix status.
                     state.status = AP_GPS::NO_FIX;
-                    state.ground_course_valid = false;
                 }
             }
             // see if we got a good message
@@ -493,7 +495,6 @@ bool AP_GPS_NMEA::_term_complete()
         case _GPS_SENTENCE_RMC + 8: // Course (GPRMC)
         case _GPS_SENTENCE_VTG + 1: // Course (VTG)
             _new_course = _parse_decimal_100(_term);
-            state.ground_course_valid = true;
             break;
         }
     }
