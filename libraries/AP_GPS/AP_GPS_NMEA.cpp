@@ -227,6 +227,27 @@ uint32_t AP_GPS_NMEA::_parse_degrees()
     // scan for decimal point or end of field
     for (p = _term; *p && isdigit(*p); p++)
         ;
+    if((_sentence_type == _GPS_SENTENCE_PSAT)&&(*p == '.')){
+        q = _term;
+        while ((p - q) > 0 && *q) {
+            if (deg)
+                deg *= 10;
+            deg += DIGIT_TO_VAL(*q++);
+        }
+        ret = (deg * (int32_t)10000000UL);
+        if (*p == '.') {
+            q = p + 1;
+            float frac_scale = 0.1f;
+            while (*q && isdigit(*q)) {
+                frac_min += DIGIT_TO_VAL(*q) * frac_scale;
+                q++;
+                frac_scale *= 0.1f;
+            }
+        }
+        ret += (int32_t)(frac_min * 1.0e7f);
+        return ret;
+    }
+
     q = _term;
 
     // convert degrees
@@ -334,9 +355,9 @@ bool AP_GPS_NMEA::_term_complete()
                     break;
                 case _GPS_SENTENCE_PSAT:
                     _last_PAST_ms = now;
-                    //state.num_sats      = _new_satellite_count;
-                    state.hdop          = _new_hdop;
-                    //make_gps_time(_new_date, _new_time * 10);
+                    state.num_sats      = _new_satellite_count;
+                    state.hdop          = 10;//_new_hdop;
+                    make_gps_time(_new_date, _new_time * 10);
                     state.location.lat     = _new_latitude;
                     state.location.lng     = _new_longitude;
                     state.ground_speed     = _new_speed*0.01f;
@@ -410,6 +431,9 @@ bool AP_GPS_NMEA::_term_complete()
             break;
         case _GPS_SENTENCE_VTG + 9: // validity (VTG) (we may not see this field)
             _gps_data_good = _term[0] != 'N';
+            break;
+        case _GPS_SENTENCE_PSAT + 28:
+            state.ground_course_valid = _term[0] == '1';
             break;
         case _GPS_SENTENCE_PSAT + 25:
         case _GPS_SENTENCE_GGA + 7: // satellite count (GGA)

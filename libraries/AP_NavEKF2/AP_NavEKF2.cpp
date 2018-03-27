@@ -567,7 +567,9 @@ NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro, const RangeFinder &rng) :
     gndEffectBaroScaler(4.0f),      // scaler applied to the barometer observation variance when operating in ground effect
     gndGradientSigma(50),           // RMS terrain gradient percentage assumed by the terrain height estimation
     fusionTimeStep_ms(10),          // The minimum number of msec between covariance prediction and fusion operations
-    runCoreSelection(false)         // true when the default primary core has stabilised after startup and core selection can run
+    runCoreSelection(false),         // true when the default primary core has stabilised after startup and core selection can run
+    rtk_yaw(0),
+    rtk_yaw_valid(0)
 {
     AP_Param::setup_object_defaults(this, var_info);
 }
@@ -1029,6 +1031,8 @@ void NavEKF2::getEulerAngles(int8_t instance, Vector3f &eulers)
     if (instance < 0 || instance >= num_cores) instance = primary;
     if (core) {
         core[instance].getEulerAngles(eulers);
+        if(rtk_yaw_valid)
+            eulers.z=rtk_yaw;
     }
 }
 

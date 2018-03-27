@@ -149,6 +149,7 @@ void AP_AHRS_NavEKF::update_EKF2(void)
         EKF2.UpdateFilter();
         if (active_EKF_type() == EKF_TYPE2) {
             Vector3f eulers;
+            EKF2.set_rtk_yaw(_gps.ground_course_valid(),ToRad(_gps.ground_course_cd() * 0.01f));
             EKF2.getRotationBodyToNED(_dcm_matrix);
             EKF2.getEulerAngles(-1,eulers);
             roll  = eulers.x;

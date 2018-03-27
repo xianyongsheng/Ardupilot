@@ -3,7 +3,7 @@
  *
  *       AHRS system using DCM matrices
  *
- *       Based on DCM code by Doug Weibel, Jordi Muñoz and Jose Julio. DIYDrones.com
+ *       Based on DCM code by Doug Weibel, Jordi Mu?oz and Jose Julio. DIYDrones.com
  *
  *       Adapted for the general ArduPilot AHRS interface by Andrew Tridgell
 
@@ -277,7 +277,7 @@ AP_AHRS_DCM::renorm(Vector3f const &a, Vector3f &result)
  *  to approximations rather than identities. In effect, the axes in the two frames of reference no
  *  longer describe a rigid body. Fortunately, numerical error accumulates very slowly, so it is a
  *  simple matter to stay ahead of it.
- *  We call the process of enforcing the orthogonality conditions ÒrenormalizationÓ.
+ *  We call the process of enforcing the orthogonality conditions ?renormalization?.
  */
 void
 AP_AHRS_DCM::normalize(void)
@@ -436,45 +436,28 @@ AP_AHRS_DCM::drift_correction_yaw(void)
     float yaw_deltat;
 
     if ((_gps.ground_course_valid()) && have_gps()) {
-            /*
+        /*
               we are using GPS for yaw
              */
-            if (_gps.last_fix_time_ms() != _gps_last_update /*&&
-                    _gps.ground_speed() >= GPS_SPEED_MIN*/) {
-                yaw_deltat = (_gps.last_fix_time_ms() - _gps_last_update) * 1.0e-3f;
-                _gps_last_update = _gps.last_fix_time_ms();
-                new_value = true;
-                float gps_course_rad = ToRad(_gps.ground_course_cd() * 0.01f);
-                float yaw_error_rad = wrap_PI(gps_course_rad - yaw);
-                yaw_error = sinf(yaw_error_rad);
+        if (_gps.last_fix_time_ms() != _gps_last_update) {
+            yaw_deltat = (_gps.last_fix_time_ms() - _gps_last_update) * 1.0e-3f;
+            _gps_last_update = _gps.last_fix_time_ms();
+            new_value = true;
+            float gps_course_rad = ToRad(_gps.ground_course_cd() * 0.01f);
+            float yaw_error_rad = wrap_PI(gps_course_rad - yaw);
+            yaw_error = sinf(yaw_error_rad);
 
-                /* reset yaw to match GPS heading under any of the
-                   following 3 conditions:
-
-                   1) if we have reached GPS_SPEED_MIN and have never had
-                   yaw information before
-
-                   2) if the last time we got yaw information from the GPS
-                   is more than 20 seconds ago, which means we may have
-                   suffered from considerable gyro drift
-
-                   3) if we are over 3*GPS_SPEED_MIN (which means 9m/s)
-                   and our yaw error is over 60 degrees, which means very
-                   poor yaw. This can happen on bungee launch when the
-                   operator pulls back the plane rapidly enough then on
-                   release the GPS heading changes very rapidly
-                */
-                if (!_flags.have_initial_yaw ||
-                        yaw_deltat > 20 ||
-                        (_gps.ground_speed() >= 3*GPS_SPEED_MIN && fabsf(yaw_error_rad) >= 1.047f)) {
-                    // reset DCM matrix based on current yaw
-                    _dcm_matrix.from_euler(roll, pitch, gps_course_rad);
-                    _omega_yaw_P.zero();
-                    _flags.have_initial_yaw = true;
-                    yaw_error = 0;
-                }
+            if (!_flags.have_initial_yaw ||
+                    yaw_deltat > 20 ||
+                    fabsf(yaw_error_rad) >= 1.047f) {
+                // reset DCM matrix based on current yaw
+                _dcm_matrix.from_euler(roll, pitch, gps_course_rad);
+                _omega_yaw_P.zero();
+                _flags.have_initial_yaw = true;
+                yaw_error = 0;
             }
-        }else if (AP_AHRS_DCM::use_compass()) {
+        }
+    }else if (AP_AHRS_DCM::use_compass()) {
         /*
           we are using compass for yaw
          */
@@ -486,6 +469,7 @@ AP_AHRS_DCM::drift_correction_yaw(void)
             // the first compass value, which can be bad
             if (!_flags.have_initial_yaw && _compass->read()) {
                 float heading = _compass->calculate_heading(_dcm_matrix);
+                //hal.console->printf("\n#%0.2f\n",heading);
                 _dcm_matrix.from_euler(roll, pitch, heading);
                 _omega_yaw_P.zero();
                 _flags.have_initial_yaw = true;
@@ -735,7 +719,7 @@ AP_AHRS_DCM::drift_correction(float deltat)
         // waiting for more data
         return;
     }
-    
+
     bool using_gps_corrections = false;
     float ra_scale = 1.0f/(_ra_deltat*GRAVITY_MSS);
 

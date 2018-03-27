@@ -59,6 +59,8 @@ void AP_AHRS_View::update(bool skip_ins_update)
 
     rot_body_to_ned.to_euler(&roll, &pitch, &yaw);
 
+    if(ahrs._gps.ground_course_valid()){yaw=ToRad(ahrs._gps.ground_course_cd() * 0.01f);}
+
     roll_sensor  = degrees(roll) * 100;
     pitch_sensor = degrees(pitch) * 100;
     yaw_sensor   = degrees(yaw) * 100;
