@@ -723,6 +723,11 @@ void AP_GPS::update(void)
     AP_Notify::flags.gps_status = state[primary_instance].status;
     AP_Notify::flags.gps_num_sats = state[primary_instance].num_sats;
 
+/*    static uint8_t cnt;cnt++;
+    if(cnt>=25){cnt=0;
+    //_port[1]->write(data,sizeof(data));
+    _port[1]->printf("#%u-%u %u %0.2f\n",primary_instance,state[primary_instance].ground_course_valid,state[1].ground_course_valid,state[1].ground_course);
+    }*/
 }
 
 /*
