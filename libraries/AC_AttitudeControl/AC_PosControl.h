@@ -29,7 +29,7 @@
 
 #define POSCONTROL_ACCEL_Z                      250.0f  // default vertical acceleration in cm/s/s.
 
-#define POSCONTROL_LEASH_LENGTH_MIN             100.0f  // minimum leash lengths in cm
+#define POSCONTROL_LEASH_LENGTH_MIN             1000.0f  // minimum leash lengths in cm
 
 #define POSCONTROL_DT_50HZ                      0.02f   // time difference in seconds for 50hz update rate
 #define POSCONTROL_DT_400HZ                     0.0025f // time difference in seconds for 400hz update rate
