@@ -19,6 +19,7 @@
  * modify src/drivers/boards/px4fmu-v4/px4fmu_spi/init.c
  * modify src/drivers/px4fmu/fmu.cpp src/drivers/stm32/adc/adc.cpp
  * modify AP_HAL_PX4 SPIDevice.cpp ms5611
+ * modify nuttx-configs/px4fmu-v4/include/board.h  :sck
  *
  *
  *-2018.04.10
