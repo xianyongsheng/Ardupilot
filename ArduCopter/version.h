@@ -15,11 +15,15 @@
 
 /*
  *-2018.4.13
- * modify src/drivers/boards/px4fmu-v4/board_config.h
- * modify src/drivers/boards/px4fmu-v4/px4fmu_spi/init.c
- * modify src/drivers/px4fmu/fmu.cpp src/drivers/stm32/adc/adc.cpp
- * modify AP_HAL_PX4 SPIDevice.cpp ms5611
- * modify nuttx-configs/px4fmu-v4/include/board.h  :sck
+ * modify files:
+ *  src/drivers/boards/px4fmu-v4/board_config.h
+ *  src/drivers/boards/px4fmu-v4/px4fmu_spi/init.c
+ *  src/drivers/px4fmu/fmu.cpp src/drivers/stm32/adc/adc.cpp
+ *  AP_HAL_PX4 SPIDevice.cpp ms5611
+ *  nuttx-configs/px4fmu-v4/include/board.h  :sck
+ *  AP_Inertialsensor.cpp
+ *  hal/board/px4.h
+ *  AP_Compass.cpp
  *
  *
  *-2018.04.10
