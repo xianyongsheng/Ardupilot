@@ -14,10 +14,14 @@
 
 
 /*
+ *-2018.4.20
+ * add baro 2
+ * change ch5 ch6
+ * add hc_sr04 driver
+ *
  *-2018.4.18
  * change motors sequence
  * add compass IST8310
- * add baro 2
  *
  *-2018.4.13
  * modify files:
