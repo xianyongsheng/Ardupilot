@@ -18,6 +18,9 @@
  * add baro 2
  * change ch5 ch6
  * add hc_sr04 driver
+ * modify AP_Inertialsensor.cpp GYRO_INIT_MAX_DIFF_DPS 0.1f to 0.5f
+ *
+ *
  *
  *-2018.4.18
  * change motors sequence
