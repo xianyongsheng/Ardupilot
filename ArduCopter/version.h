@@ -2,7 +2,7 @@
 
 #include "ap_version.h"
 
-#define THISFIRMWARE "#Copter V3.5.5-iov4"
+#define THISFIRMWARE "#IOV4-V3.5.5"
 #define FIRMWARE_VERSION 3,5,5,FIRMWARE_VERSION_TYPE_OFFICIAL
 
 #ifndef GIT_VERSION
@@ -14,6 +14,11 @@
 
 
 /*
+ *-2018.4.18
+ * change motors sequence
+ * add compass IST8310
+ * add baro 2
+ *
  *-2018.4.13
  * modify files:
  *  src/drivers/boards/px4fmu-v4/board_config.h
@@ -24,7 +29,7 @@
  *  AP_Inertialsensor.cpp
  *  hal/board/px4.h
  *  AP_Compass.cpp
- *
+ *  AP_Motors_Clas.cpp
  *
  *-2018.04.10
  * modify AC_ATTITUDE_ACCEL_Y_CONTROLLER_MAX_RADSS 120 to 1200

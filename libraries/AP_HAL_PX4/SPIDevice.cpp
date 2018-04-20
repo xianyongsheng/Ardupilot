@@ -84,7 +84,8 @@ SPIDesc SPIDeviceManager::device_table[] = {
 #endif
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_PX4_V4
     #ifdef PX4_SPIDEV_BARO_1
-    SPIDesc("ms5611_int",   PX4_SPI_BUS_BARO, (spi_dev_e)PX4_SPIDEV_BARO_1, SPIDEV_MODE3, 20*MHZ, 20*MHZ),
+    SPIDesc("ms5611_int_1",   PX4_SPI_BUS_BARO, (spi_dev_e)PX4_SPIDEV_BARO_1, SPIDEV_MODE3, 20*MHZ, 20*MHZ),
+    SPIDesc("ms5611_int_2",   PX4_SPI_BUS_BARO, (spi_dev_e)PX4_SPIDEV_BARO_2, SPIDEV_MODE3, 20*MHZ, 20*MHZ),
     #else
     SPIDesc("ms5611_int",   PX4_SPI_BUS_BARO, (spi_dev_e)PX4_SPIDEV_BARO, SPIDEV_MODE3, 20*MHZ, 20*MHZ),
     #endif

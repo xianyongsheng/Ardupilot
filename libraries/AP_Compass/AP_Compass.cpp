@@ -589,37 +589,13 @@ void Compass::_detect_backends(void)
         			AP_Compass_QMC5883L::name,both_i2c_external);
                 // IST8310 on external and internal bus
                 ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0C),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+                                                                      true, ROTATION_PITCH_180_YAW_90), AP_Compass_IST8310::name, true);
                 ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0C),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x18),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x18),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0D),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0D),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x1A),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x1A),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0E),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0E),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x1C),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x1C),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+                                                                      true, ROTATION_PITCH_180_YAW_90), AP_Compass_IST8310::name, true);
                 ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x0F),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+                                                                      true, ROTATION_ROLL_180), AP_Compass_IST8310::name, true);
                 ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x0F),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(0, 0x1E),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
-                ADD_BACKEND(DRIVER_HMC5883, AP_Compass_IST8310::probe(*this, hal.i2c_mgr->get_device(1, 0x1E),
-                                                                      true, ROTATION_PITCH_180), AP_Compass_IST8310::name, true);
+                                                                      true, ROTATION_ROLL_180), AP_Compass_IST8310::name, true);
 
 #if !HAL_MINIMIZE_FEATURES
         // AK09916 on ICM20948
