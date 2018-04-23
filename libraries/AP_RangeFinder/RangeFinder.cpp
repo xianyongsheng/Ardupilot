@@ -27,6 +27,7 @@
 #include "AP_RangeFinder_LeddarOne.h"
 #include "AP_RangeFinder_uLanding.h"
 #include "AP_RangeFinder_trone.h"
+#include "AP_RangeFinder_PX4.h"
 #include <AP_BoardConfig/AP_BoardConfig.h>
 
 extern const AP_HAL::HAL &hal;
@@ -644,6 +645,11 @@ void RangeFinder::detect_instance(uint8_t instance)
         break;
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4  || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     case RangeFinder_TYPE_PX4_PWM:
+        if (AP_RangeFinder_PX4::detect(*this, instance)) {
+                    state[instance].instance = instance;
+                    drivers[instance] = new AP_RangeFinder_PX4(*this, instance, state[instance]);
+                    return;
+                }
         if (AP_RangeFinder_PX4_PWM::detect(*this, instance)) {
             state[instance].instance = instance;
             drivers[instance] = new AP_RangeFinder_PX4_PWM(*this, instance, state[instance]);

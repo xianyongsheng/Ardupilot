@@ -49,6 +49,7 @@ extern "C" {
     int px4io_main(int, char **);
     int adc_main(int, char **);
     int tone_alarm_main(int, char **);
+    int hc_sr04_main(int, char **);
 };
 
 /*
@@ -536,6 +537,11 @@ void AP_BoardConfig::px4_autodetect(void)
         sensor_config_error("Unable to detect board type");
     }
 #elif defined(CONFIG_ARCH_BOARD_PX4FMU_V4)
+    if (px4_start_driver(hc_sr04_main, "hc_sr04", "start")) {
+        hal.console->printf("hc_sr04 sensor start complete\n");
+    }else{
+        hal.console->printf("hc_sr04 sensor start failed\n");
+    }
     // only one choice
     px4.board_type.set_and_notify(PX4_BOARD_PIXRACER);
     hal.console->printf("Detected Pixracer\n");
@@ -547,7 +553,6 @@ void AP_BoardConfig::px4_autodetect(void)
     px4.board_type.set_and_notify(PX4_BOARD_AEROFC);
     hal.console->printf("Detected Aero FC\n");
 #endif
-
 }
 
 /*

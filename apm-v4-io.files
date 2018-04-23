@@ -1165,6 +1165,8 @@ libraries/AP_RangeFinder/AP_RangeFinder_MaxsonarI2CXL.cpp
 libraries/AP_RangeFinder/AP_RangeFinder_MaxsonarI2CXL.h
 libraries/AP_RangeFinder/AP_RangeFinder_MaxsonarSerialLV.cpp
 libraries/AP_RangeFinder/AP_RangeFinder_MaxsonarSerialLV.h
+libraries/AP_RangeFinder/AP_RangeFinder_PX4.cpp
+libraries/AP_RangeFinder/AP_RangeFinder_PX4.h
 libraries/AP_RangeFinder/AP_RangeFinder_PX4_PWM.cpp
 libraries/AP_RangeFinder/AP_RangeFinder_PX4_PWM.h
 libraries/AP_RangeFinder/AP_RangeFinder_PulsedLightLRF.cpp
