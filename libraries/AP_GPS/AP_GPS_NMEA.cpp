@@ -486,7 +486,9 @@ bool AP_GPS_NMEA::_term_complete()
 
         // course and speed
         //
-        case _GPS_SENTENCE_PSAT + 17:
+        case _GPS_SENTENCE_PSAT + 18:
+            _new_speed = _parse_decimal_100(_term);
+            break;
         case _GPS_SENTENCE_RMC + 7: // Speed (GPRMC)
         case _GPS_SENTENCE_VTG + 5: // Speed (VTG)
             _new_speed = (_parse_decimal_100(_term) * 514) / 1000;       // knots-> m/sec, approximiates * 0.514
