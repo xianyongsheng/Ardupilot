@@ -14,6 +14,13 @@
 
 
 /*
+ *-2018.4.29
+ * modify AP_Inertialsensor.cpp GYRO_INIT_MAX_DIFF_DPS 0.1f to 0.1f
+ *
+ *
+ *-2018.4.25
+ * modify config.h FS_RADIO_RC_OVERRIDE_TIMEOUT_MS and FS_RADIO_TIMEOUT_MS
+ *
  *-2018.4.23
  * add px4_drivers hc_sr04
  * add AP_RangeFinder_PX4.cpp
