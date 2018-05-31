@@ -149,6 +149,7 @@ public:
     // HAL::Callbacks implementation.
     void setup() override;
     void loop() override;
+    Parameters g;
 
 private:
     // key aircraft parameters passed to multiple libraries
@@ -160,7 +161,7 @@ private:
     AP_HAL::BetterStream* cliSerial;
 
     // Global parameters are all contained within the 'g' class.
-    Parameters g;
+//    Parameters g;
     ParametersG2 g2;
 
     // main loop scheduler

@@ -51,7 +51,9 @@ class AP_AHRS
 {
 public:
     friend class AP_AHRS_View;
-    
+
+    const AP_GPS        &_gps;
+
     // Constructor
     AP_AHRS(AP_InertialSensor &ins, AP_Baro &baro, AP_GPS &gps) :
         roll(0.0f),
@@ -584,7 +586,7 @@ protected:
     //       IMU under us without our noticing.
     AP_InertialSensor   &_ins;
     AP_Baro             &_baro;
-    const AP_GPS        &_gps;
+//    const AP_GPS        &_gps;
 
     // a vector to capture the difference between the controller and body frames
     AP_Vector3f         _trim;

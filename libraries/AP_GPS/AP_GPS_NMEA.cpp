@@ -36,6 +36,7 @@
 
 #include "AP_GPS_NMEA.h"
 
+#include "./../../ArduCopter/Copter.h"
 extern const AP_HAL::HAL& hal;
 
 // optionally log all NMEA data for debug purposes
@@ -361,7 +362,16 @@ bool AP_GPS_NMEA::_term_complete()
                     state.location.lat     = _new_latitude;
                     state.location.lng     = _new_longitude;
                     state.ground_speed     = _new_speed*0.01f;
-                    state.ground_course    = wrap_360(_new_course*0.01f);
+                    float temp    = wrap_360(_new_course*0.01f);
+                    if(copter.g.rtk_yaw_rotation>0 && copter.g.rtk_yaw_rotation<360){
+                        if((temp - copter.g.rtk_yaw_rotation)>=0){
+                            state.ground_course = temp - copter.g.rtk_yaw_rotation;
+                        }else{
+                            state.ground_course = (temp - copter.g.rtk_yaw_rotation) + 360.0f;
+                        }
+                    }else{
+                        state.ground_course = temp;
+                    }
                     state.last_gps_time_ms = now;
                     // To-Do: add support for proper reporting of 2D and 3D fix
                     state.status           = AP_GPS::GPS_OK_FIX_3D_RTK_FIXED;

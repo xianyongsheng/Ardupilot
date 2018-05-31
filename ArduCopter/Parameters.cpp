@@ -888,6 +888,13 @@ const AP_Param::Info Copter::var_info[] = {
     // @Path: Parameters.cpp
     GOBJECT(g2, "",  ParametersG2),
     
+    // @Param: MY_NEW_PARAMETER
+    // @DisplayName: My New Parameter
+    // @Description: A description of my new parameter goes here
+    // @Range: -32768 32767
+    // @User: Advanced
+    GSCALAR(rtk_yaw_rotation, "RTK_YAW_ROTATION", RTK_YAW_ROTATION),
+
     AP_VAREND
 };
 

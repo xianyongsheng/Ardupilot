@@ -188,6 +188,29 @@ void NavEKF2_core::realignYawGPS()
             }
         }
     }
+    if(_ahrs->_gps.ground_course_valid()){
+        // get quaternion from existing filter states and calculate roll, pitch and yaw angles
+        Vector3f eulerAngles;
+        stateStruct.quat.to_euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
+        //
+        float gpsYaw = ToRad(_ahrs->_gps.ground_course_cd() * 0.01f);
+        // reset the velocity and position states as they will be inaccurate due to bad yaw
+        ResetVelocity();
+        ResetPosition();
+
+        // send yaw alignment information to console
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "EKF2 IMU%u yaw aligned to GPS velocity",(unsigned)imu_index);
+
+        // zero the attitude covariances becasue the corelations will now be invalid
+        zeroAttCovOnly();
+
+        // record the yaw reset event
+        recordYawReset();
+
+        // clear all pending yaw reset requests
+        gpsYawResetRequest = false;
+        magYawResetRequest = false;
+    }
 }
 
 /********************************************************
