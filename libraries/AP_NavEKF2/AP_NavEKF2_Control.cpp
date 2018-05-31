@@ -333,6 +333,14 @@ void NavEKF2_core::setAidingMode()
 // Used during initial bootstrap alignment of the filter
 void NavEKF2_core::checkAttitudeAlignmentStatus()
 {
+    static bool reset_flag = true;
+    if(_ahrs->_gps.ground_course_valid() && reset_flag){
+        reset_flag = false;
+        yawAlignComplete = false;
+    }else if(!_ahrs->_gps.ground_course_valid() && !reset_flag){
+        reset_flag = true;
+        yawAlignComplete = false;
+    }
     // Check for tilt convergence - used during initial alignment
     float alpha = 1.0f*imuDataDelayed.delAngDT;
     float temp=tiltErrVec.length();
@@ -344,12 +352,12 @@ void NavEKF2_core::checkAttitudeAlignmentStatus()
 
     // submit yaw and magnetic field reset requests depending on whether we have compass data
     if (tiltAlignComplete && !yawAlignComplete) {
-        if (use_compass()) {
-            magYawResetRequest = true;
-            gpsYawResetRequest = false;
-        } else {
+        if(_ahrs->_gps.ground_course_valid()){
             magYawResetRequest = false;
             gpsYawResetRequest = true;
+         }else if (use_compass()) {
+            magYawResetRequest = true;
+            gpsYawResetRequest = false;
         }
     }
 }
@@ -388,7 +396,7 @@ bool NavEKF2_core::readyToUseRangeBeacon(void) const
 // return true if we should use the compass
 bool NavEKF2_core::use_compass(void) const
 {
-    return _ahrs->get_compass() && _ahrs->get_compass()->use_for_yaw(magSelectIndex) && !allMagSensorsFailed && !_ahrs->_gps.ground_course_valid();
+    return _ahrs->get_compass() && _ahrs->get_compass()->use_for_yaw(magSelectIndex) && !allMagSensorsFailed /*&& !_ahrs->_gps.ground_course_valid()*/;
 }
 
 /*

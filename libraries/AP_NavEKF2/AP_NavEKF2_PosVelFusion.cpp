@@ -269,8 +269,16 @@ void NavEKF2_core::SelectVelPosFusion()
     // we have GPS data to fuse and a request to align the yaw using the GPS course
     if (gpsYawResetRequest) {
         realignYawGPS();
-    }
+    }else if(_ahrs->_gps.ground_course_valid()){
+        // get quaternion from existing filter states and calculate roll, pitch and yaw angles
+        Vector3f eulerAngles;
+        stateStruct.quat.to_euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
+        //
+        float gpsYaw = ToRad(_ahrs->_gps.ground_course_cd() * 0.01f);
 
+        // calculate new filter quaternion states from Euler angles
+        stateStruct.quat.from_euler(eulerAngles.x, eulerAngles.y, gpsYaw);
+    }
     // Select height data to be fused from the available baro, range finder and GPS sources
     selectHeightForFusion();
 

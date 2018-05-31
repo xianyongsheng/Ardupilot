@@ -411,9 +411,9 @@ void AC_AttitudeControl::attitude_controller_run_quat()
     // TODO add _ahrs.get_quaternion()
     Quaternion attitude_vehicle_quat;
     attitude_vehicle_quat.from_rotation_matrix(_ahrs.get_rotation_body_to_ned());
-    static uint8_t cnt;cnt++;
-    if(cnt==255)
-        hal.uartB->printf("#droll: %0.2f roll: %0.2f dyaw: %0.2f yaw: %0.2f\n",_attitude_target_quat.get_euler_roll(),attitude_vehicle_quat.get_euler_roll(),_attitude_target_quat.get_euler_yaw(),attitude_vehicle_quat.get_euler_yaw());
+    //static uint8_t cnt;cnt++;
+    //if(cnt==255)
+    //    hal.uartB->printf("#droll: %0.2f roll: %0.2f dyaw: %0.2f yaw: %0.2f\n",_attitude_target_quat.get_euler_roll(),attitude_vehicle_quat.get_euler_roll(),_attitude_target_quat.get_euler_yaw(),attitude_vehicle_quat.get_euler_yaw());
 
     // Compute attitude error
     Vector3f attitude_error_vector;

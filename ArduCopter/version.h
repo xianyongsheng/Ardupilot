@@ -13,8 +13,8 @@
 
 /*
  * 2018.5.31
- * add code in AP_NavEKF2_MagFusion.cpp lines: 191
- * add code in AP_NavEKF2_Contorl.cpp lines: 391
+ * add code in AP_NavEKF2_MagFusion.cpp lines: 144
+ * add code in AP_NavEKF2_Contorl.cpp lines: 336/399
  * remove code of AP_AHRS_View
  * remove code of AP_AHRS_NAVEKF EKF2.set_rtk_yaw(_gps.ground_course_valid(),ToRad(_gps.ground_course_cd() * 0.01f));
  *
