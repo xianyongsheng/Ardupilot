@@ -290,7 +290,7 @@ bool PX4GPIO::usb_connected(void)
       systems where the VBUS may go high even with no USB connected
       (such as AUAV-X2)
      */
-    return stm32_gpioread(GPIO_OTGFS_VBUS) && _usb_connected;
+    return 1;//stm32_gpioread(GPIO_OTGFS_VBUS) && _usb_connected;
 }
 
 

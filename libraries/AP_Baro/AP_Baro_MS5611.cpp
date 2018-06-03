@@ -82,7 +82,7 @@ bool AP_Baro_MS56XX::_init()
     }
 
     if (!_dev->get_semaphore()->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
-        AP_HAL::panic("PANIC: AP_Baro_MS56XX: failed to take serial semaphore for init");
+        hal.console->printf("PANIC: AP_Baro_MS56XX: failed to take serial semaphore for init");
     }
 
     // high retries for init
@@ -112,11 +112,12 @@ bool AP_Baro_MS56XX::_init()
     }
 
     if (!prom_read_ok) {
+        hal.console->printf("prom read not ok!");
         _dev->get_semaphore()->give();
         return false;
     }
 
-    printf("%s found on bus %u address 0x%02x\n", name, _dev->bus_num(), _dev->get_bus_address());
+    hal.console->printf("%s found on bus %u address 0x%02x\n", name, _dev->bus_num(), _dev->get_bus_address());
 
     // Save factory calibration coefficients
     _cal_reg.c1 = prom[1];

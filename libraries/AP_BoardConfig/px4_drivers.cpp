@@ -49,6 +49,7 @@ extern "C" {
     int px4io_main(int, char **);
     int adc_main(int, char **);
     int tone_alarm_main(int, char **);
+    int ms5611_main(int , char **);
 };
 
 /*
@@ -547,6 +548,12 @@ void AP_BoardConfig::px4_autodetect(void)
     px4.board_type.set_and_notify(PX4_BOARD_AEROFC);
     hal.console->printf("Detected Aero FC\n");
 #endif
+
+    if (px4_start_driver(ms5611_main, "ms5611", "start")) {
+        hal.console->printf("ms5611 started OK\n");
+    } else {
+        hal.console->printf("no ms5611 found");
+    }
 
 }
 
