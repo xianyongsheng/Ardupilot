@@ -67,14 +67,14 @@ const AP_Param::GroupInfo AP_SerialManager::var_info[] = {
     // @Description: Control what protocol to use on the Telem2 port. Note that the Frsky options require external converter hardware. See the wiki for details.
     // @Values: -1:None, 1:MAVLink1, 2:MAVLink2, 3:Frsky D, 4:Frsky SPort, 5:GPS, 7:Alexmos Gimbal Serial, 8:SToRM32 Gimbal Serial, 9:Lidar, 10:FrSky SPort Passthrough (OpenTX), 11:Lidar360, 12:Aerotenna uLanding, 13:Beacon
     // @User: Standard
-    AP_GROUPINFO("2_PROTOCOL",  3, AP_SerialManager, state[2].protocol, SerialProtocol_MAVLink),
+    AP_GROUPINFO("2_PROTOCOL",  3, AP_SerialManager, state[2].protocol, SerialProtocol_None),//SerialProtocol_None
 
     // @Param: 2_BAUD
     // @DisplayName: Telemetry 2 Baud Rate
     // @Description: The baud rate of the Telem2 port. The APM2 can support all baudrates up to 115, and also can support 500. The PX4 can support rates of up to 1500. If you setup a rate you cannot support on APM2 and then can't connect to your board you should load a firmware from a different vehicle type. That will reset all your parameters to defaults.
     // @Values: 1:1200,2:2400,4:4800,9:9600,19:19200,38:38400,57:57600,111:111100,115:115200,500:500000,921:921600,1500:1500000
     // @User: Standard
-    AP_GROUPINFO("2_BAUD", 4, AP_SerialManager, state[2].baud, AP_SERIALMANAGER_MAVLINK_BAUD/1000),
+    AP_GROUPINFO("2_BAUD", 4, AP_SerialManager, state[2].baud, AP_SERIALMANAGER_CONSOLE_BAUD/1000),
 
     // @Param: 3_PROTOCOL
     // @DisplayName: Serial 3 (GPS) protocol selection
@@ -88,7 +88,7 @@ const AP_Param::GroupInfo AP_SerialManager::var_info[] = {
     // @Description: The baud rate used for the Serial 3 (GPS). The APM2 can support all baudrates up to 115, and also can support 500. The PX4 can support rates of up to 1500. If you setup a rate you cannot support on APM2 and then can't connect to your board you should load a firmware from a different vehicle type. That will reset all your parameters to defaults.
     // @Values: 1:1200,2:2400,4:4800,9:9600,19:19200,38:38400,57:57600,111:111100,115:115200,500:500000,921:921600,1500:1500000
     // @User: Standard
-    AP_GROUPINFO("3_BAUD", 6, AP_SerialManager, state[3].baud, AP_SERIALMANAGER_GPS_BAUD/1000),
+    AP_GROUPINFO("3_BAUD", 6, AP_SerialManager, state[3].baud, AP_SERIALMANAGER_CONSOLE_BAUD/1000),
 
     // @Param: 4_PROTOCOL
     // @DisplayName: Serial4 protocol selection
@@ -109,7 +109,7 @@ const AP_Param::GroupInfo AP_SerialManager::var_info[] = {
     // @Description: Control what protocol Serial5 port should be used for. Note that the Frsky options require external converter hardware. See the wiki for details.
     // @Values: -1:None, 1:MAVLink1, 2:MAVLink2, 3:Frsky D, 4:Frsky SPort, 5:GPS, 7:Alexmos Gimbal Serial, 8:SToRM32 Gimbal Serial, 9:Lidar, 10:FrSky SPort Passthrough (OpenTX), 11:Lidar360, 12:Aerotenna uLanding, 13:Beacon
     // @User: Standard
-    AP_GROUPINFO("5_PROTOCOL",  9, AP_SerialManager, state[5].protocol, SERIAL5_PROTOCOL),
+    AP_GROUPINFO("5_PROTOCOL",  9, AP_SerialManager, state[5].protocol, SerialProtocol_None),
 
     // @Param: 5_BAUD
     // @DisplayName: Serial 5 Baud Rate
@@ -165,7 +165,12 @@ void AP_SerialManager::init()
             g_nsh_should_exit = true;
         }
 #endif
-        
+#ifdef CONFIG_ARCH_BOARD_PX4FMU_V4
+        if (i == 2 && state[i].protocol != SerialProtocol_None) {
+            // tell nsh to exit to free up this uart
+            g_nsh_should_exit = true;
+        }
+#endif
         if (state[i].uart != nullptr) {
             switch (state[i].protocol) {
                 case SerialProtocol_None:
