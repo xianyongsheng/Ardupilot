@@ -65,7 +65,7 @@ static PX4::SPIDeviceManager spi_mgr_instance;
 #define UARTC_DEFAULT_DEVICE "/dev/ttyS1"
 #define UARTD_DEFAULT_DEVICE "/dev/ttyS2"
 #define UARTE_DEFAULT_DEVICE "/dev/ttyS6" // frsky telem
-#define UARTF_DEFAULT_DEVICE "/dev/ttyS0" // wifi
+#define UARTF_DEFAULT_DEVICE "/dev/ttyS5" // wifi
 #elif defined(CONFIG_ARCH_BOARD_AEROFC_V1)
 #define UARTA_DEFAULT_DEVICE "/dev/ttyS1" // Aero
 #define UARTB_DEFAULT_DEVICE "/dev/ttyS5" // GPS
