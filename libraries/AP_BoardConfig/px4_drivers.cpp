@@ -68,6 +68,7 @@ void AP_BoardConfig::px4_setup_pwm()
         { 4, PWM_SERVO_MODE_4PWM, 2 },
         { 6, PWM_SERVO_MODE_6PWM, 0 },
         { 7, PWM_SERVO_MODE_3PWM1CAP, 2 },
+        { 8, PWM_SERVO_MODE_8PWM, 0 },
 #if CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
         { 8, PWM_SERVO_MODE_12PWM, 0 },
 #endif

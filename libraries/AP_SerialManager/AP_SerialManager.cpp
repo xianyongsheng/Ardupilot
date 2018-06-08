@@ -166,7 +166,7 @@ void AP_SerialManager::init()
         }
 #endif
 #ifdef CONFIG_ARCH_BOARD_PX4FMU_V4
-        if (i == 2 && state[i].protocol != SerialProtocol_None) {
+        if (i == 1 && state[i].protocol != SerialProtocol_None) {
             // tell nsh to exit to free up this uart
             g_nsh_should_exit = true;
         }
