@@ -445,7 +445,11 @@ bool AP_GPS_NMEA::_term_complete()
             _gps_data_good = _term[0] != 'N';
             break;
         case _GPS_SENTENCE_PSAT + 28:
-            state.ground_course_valid = _term[0] == '1';
+            if(copter.g.rtk_yaw_enable){
+                state.ground_course_valid = _term[0] == '1';
+            }else{
+                state.ground_course_valid = false;
+            }
             break;
         case _GPS_SENTENCE_PSAT + 25:
         case _GPS_SENTENCE_GGA + 7: // satellite count (GGA)

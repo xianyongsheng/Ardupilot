@@ -366,6 +366,7 @@ public:
         k_param_DataFlash = 253, // 253 - Logging Group
 
         k_param_rtk_yaw_rotation = 254,
+        k_param_rtk_yaw_enable = 255,
         // 254,255: reserved
 
         // the k_param_* space is 9-bits in size
@@ -373,6 +374,7 @@ public:
     };
 
     AP_Int16        rtk_yaw_rotation;
+    AP_Int8         rtk_yaw_enable;
 
     AP_Int16        format_version;
     AP_Int8         software_type;

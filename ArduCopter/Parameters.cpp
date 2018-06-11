@@ -894,6 +894,7 @@ const AP_Param::Info Copter::var_info[] = {
     // @Range: -32768 32767
     // @User: Advanced
     GSCALAR(rtk_yaw_rotation, "RTK_YAW_ROTATION", RTK_YAW_ROTATION),
+    GSCALAR(rtk_yaw_enable, "RTK_YAW_ENABLE", RTK_YAW_ENABLE),
 
     AP_VAREND
 };
