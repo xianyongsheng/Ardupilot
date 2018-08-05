@@ -39,7 +39,7 @@
 
 // mavlink default baud rates and buffer sizes
 #define AP_SERIALMANAGER_MAVLINK_BAUD           57600
-#define AP_SERIALMANAGER_MAVLINK_BUFSIZE_RX     128
+#define AP_SERIALMANAGER_MAVLINK_BUFSIZE_RX     256
 #define AP_SERIALMANAGER_MAVLINK_BUFSIZE_TX     256
 
 // FrSky default baud rates, use default buffer sizes

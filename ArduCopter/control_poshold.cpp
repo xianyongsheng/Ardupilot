@@ -14,13 +14,13 @@
 #define POSHOLD_BRAKE_TO_LOITER_TIMER           (150*4) // Number of cycles to transition from brake mode to loiter mode.  Must be lower than POSHOLD_LOITER_STAB_TIMER
 #define POSHOLD_WIND_COMP_START_TIMER           (150*4) // Number of cycles to start wind compensation update after loiter is engaged
 #define POSHOLD_CONTROLLER_TO_PILOT_MIX_TIMER   (50*4)  // Set it from 100 to 200, the number of centiseconds loiter and manual commands are mixed to make a smooth transition.
-#define POSHOLD_SMOOTH_RATE_FACTOR              0.0125f // filter applied to pilot's roll/pitch input as it returns to center.  A lower number will cause the roll/pitch to return to zero more slowly if the brake_rate is also low.
+#define POSHOLD_SMOOTH_RATE_FACTOR              1.0f//0.0125f // filter applied to pilot's roll/pitch input as it returns to center.  A lower number will cause the roll/pitch to return to zero more slowly if the brake_rate is also low.
 #define POSHOLD_WIND_COMP_TIMER_10HZ            40      // counter value used to reduce wind compensation to 10hz
 #define LOOP_RATE_FACTOR                        4       // used to adapt PosHold params to loop_rate
 #define TC_WIND_COMP                            0.0025f // Time constant for poshold_update_wind_comp_estimate()
 
 // definitions that are independent of main loop rate
-#define POSHOLD_STICK_RELEASE_SMOOTH_ANGLE      1800    // max angle required (in centi-degrees) after which the smooth stick release effect is applied
+#define POSHOLD_STICK_RELEASE_SMOOTH_ANGLE      10//1800    // max angle required (in centi-degrees) after which the smooth stick release effect is applied
 #define POSHOLD_WIND_COMP_ESTIMATE_SPEED_MAX    10      // wind compensation estimates will only run when velocity is at or below this speed in cm/s
 
 // mission state enumeration
@@ -545,6 +545,8 @@ void Copter::poshold_run()
 // poshold_update_pilot_lean_angle - update the pilot's filtered lean angle with the latest raw input received
 void Copter::poshold_update_pilot_lean_angle(float &lean_angle_filtered, float &lean_angle_raw)
 {
+    lean_angle_filtered = lean_angle_raw;
+    return;
     // if raw input is large or reversing the vehicle's lean angle immediately set the fitlered angle to the new raw angle
     if ((lean_angle_filtered > 0 && lean_angle_raw < 0) || (lean_angle_filtered < 0 && lean_angle_raw > 0) || (fabsf(lean_angle_raw) > POSHOLD_STICK_RELEASE_SMOOTH_ANGLE)) {
         lean_angle_filtered = lean_angle_raw;

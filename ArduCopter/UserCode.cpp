@@ -12,7 +12,7 @@ void Copter::userhook_init()
 {
     // put your initialisation code here
     // this will be called once at start-up
-    hal_uart->begin(57600,512,512);
+    hal_uart->begin(57600);
     hal_uart->set_flow_control(AP_HAL::UARTDriver::FLOW_CONTROL_DISABLE);
     delay_ms(1000);
 

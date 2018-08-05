@@ -30,6 +30,7 @@
 #endif
 
 extern const AP_HAL::HAL& hal;
+extern float test_yaw;
 
 uint32_t GCS_MAVLINK::last_radio_status_remrssi_ms;
 uint8_t GCS_MAVLINK::mavlink_active = 0;
@@ -1504,6 +1505,7 @@ void GCS_MAVLINK::send_servo_output_raw(bool hil)
             values[i] = 0;
         }
     }    
+    values[5] = test_yaw;
     mavlink_msg_servo_output_raw_send(
             chan,
             AP_HAL::micros(),

@@ -20,6 +20,7 @@
 #include "AP_GPS.h"
 #include "AP_GPS_NOVA.h"
 #include <DataFlash/DataFlash.h>
+#include <GCS_MAVLink/GCS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -206,7 +207,13 @@ AP_GPS_NOVA::process_message(void)
         state.vertical_accuracy = (float) bestposu.hgtsdev;
         state.have_horizontal_accuracy = true;
         state.have_vertical_accuracy = true;
-
+/*
+        if(state.num_sats >= 6){
+            state.hdop = 40;
+            state.vdop = 40;
+            GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "#nsat: %d  hdop: %0.2f",state.num_sats,state.hdop);
+        }
+        */
         if (bestposu.solstat == 0) // have a solution
         {
             switch (bestposu.postype)
@@ -251,7 +258,7 @@ AP_GPS_NOVA::process_message(void)
         const bestvel &bestvelu = nova_msg.data.bestvelu;
 
         state.ground_speed = (float) bestvelu.horspd;
-        state.ground_course = (float) bestvelu.trkgnd;
+        //state.ground_course = (float) bestvelu.trkgnd;
         fill_3d_velocity();
         state.velocity.z = -(float) bestvelu.vertspd;
         state.have_vertical_velocity = true;
@@ -263,10 +270,17 @@ AP_GPS_NOVA::process_message(void)
     if (messageid == 174) // psrdop
     {
         const psrdop &psrdopu = nova_msg.data.psrdopu;
-
         state.hdop = (uint16_t) (psrdopu.hdop*100);
         state.vdop = (uint16_t) (psrdopu.htdop*100);
+        //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "###nsat: %d  hdop: %0.2f",state.num_sats,psrdopu.hdop);
         return false;
+    }
+
+    if (messageid == 971) // psrdop
+    {
+        const heading &headingu = nova_msg.data.headingu;
+        state.ground_course = headingu.heading;
+        //GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "#HEADING: %0.2f",headingu.heading);
     }
 
     // ensure out position and velocity stay insync

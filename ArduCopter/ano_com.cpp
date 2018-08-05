@@ -1,16 +1,32 @@
 #include "ano_com.h" 
+#include "Copter.h"
 
 static uint8_t ano_send_buff[50];
 
-#define ano_data_send(s,l)	if(hal.uartC->txspace()>l)hal.uartC->write(s,l)
+#define ano_data_send(s,l)	if(hal.uartC->txspace()>=l)hal.uartC->write(s,l)
 
 #define ANO_SDATUS	0.0f,1.0f,2.0f,0,0,0
 
+void Copter::ano_get_data(Vector3f& angle,Vector3f& vel,Vector3f& pos,Vector3f& d_vel,Vector3f& d_pos)
+{
+    angle.x = ahrs.roll_sensor/100;
+    angle.y = ahrs.pitch_sensor/100;
+    angle.z = ahrs.yaw_sensor/100;
+    vel = inertial_nav.get_velocity();
+    pos = inertial_nav.get_position();
+    d_vel = pos_control->get_vel_target();
+    d_pos = pos_control->get_pos_target();
+
+}
 void  ano_exchange_run(void)
 {
-    //ano_send_status(ANO_SDATUS);
-    uint8_t data2[]={0xa5,0x82,0x05,0x00,0x00,0x00,0x00,0x00,0x22};
-    ano_data_send(data2,sizeof(data2));
+    Vector3f angle,vel,pos,dvel,dpos;
+    copter.ano_get_data(angle,vel,pos,dvel,dpos);
+    //ano_send_status(angle.x, angle.y, angle.z, 0,0,0);
+    if(hal.uartC->txspace()>=30){
+       float data[]={dpos.x,dpos.y,dpos.z, pos.x,pos.y,pos.z, dvel.x,dvel.y,dvel.z,vel.x,vel.y,vel.z};
+      ano_send_user(0xf1,data,12);
+    }
 }
 
 void ano_receive_parse(uint8_t *data_buf,uint8_t num)
@@ -414,7 +430,7 @@ void ano_send_user(uint8_t id, float* ano_user_data, uint8_t len)
 	ano_send_buff[_cnt++]=0;
 		
 	for(uint8_t i=0;i<len;i++){
-		_temp = (int16_t)ano_user_data[i];					
+        _temp = (int16_t)ano_user_data[i];
 		ano_send_buff[_cnt++]=BYTE1(_temp);
 		ano_send_buff[_cnt++]=BYTE0(_temp);
 	}

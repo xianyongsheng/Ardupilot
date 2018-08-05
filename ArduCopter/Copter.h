@@ -150,6 +150,7 @@ public:
     void setup() override;
     void loop() override;
 
+    void ano_get_data(Vector3f &angle, Vector3f &vel, Vector3f &pos, Vector3f &d_vel, Vector3f &d_pos);
 private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
