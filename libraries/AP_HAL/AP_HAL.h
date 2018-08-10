@@ -31,3 +31,6 @@
 #include "HAL.h"
 
 #include "system.h"
+
+extern uint32_t mavrng_last_update_ms;
+extern uint16_t mavrng_dist_cm;

@@ -21,6 +21,8 @@
 
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Math/AP_Math.h>
+#include <AP_Common/AP_Common.h>
+#include <AP_SerialManager/AP_SerialManager.h>
 
 class OpticalFlow_backend;
 class AP_AHRS_NavEKF;
@@ -74,6 +76,8 @@ public:
 
     // parameter var info table
     static const struct AP_Param::GroupInfo var_info[];
+
+    void handle_msg(mavlink_message_t *msg);
 
 private:
     AP_AHRS_NavEKF &_ahrs;

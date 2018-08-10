@@ -10,3 +10,17 @@
 #else
 #define FIRMWARE_STRING THISFIRMWARE " (" GIT_VERSION ")"
 #endif
+
+
+
+/*
+ *
+ *
+ *2018.8.10
+ * add mavflow and mavrngfnd
+ *
+ *2018.8
+ * add flowme yaw
+ * modify rtk nova
+ *
+ */

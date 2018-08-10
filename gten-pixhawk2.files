@@ -962,6 +962,8 @@ libraries/AP_Notify/VRBoard_LED.h
 libraries/AP_Notify/examples/AP_Notify_test/AP_Notify_test.cpp
 libraries/AP_Notify/examples/ToshibaLED_test/ToshibaLED_test.cpp
 libraries/AP_OpticalFlow/AP_OpticalFlow.h
+libraries/AP_OpticalFlow/AP_OpticalFlow_MAVFlow.cpp
+libraries/AP_OpticalFlow/AP_OpticalFlow_MAVFlow.h
 libraries/AP_OpticalFlow/AP_OpticalFlow_Onboard.cpp
 libraries/AP_OpticalFlow/AP_OpticalFlow_Onboard.h
 libraries/AP_OpticalFlow/AP_OpticalFlow_PX4Flow.cpp
@@ -1481,6 +1483,10 @@ modules/PX4Firmware/src/drivers/ll40ls/module.mk
 modules/PX4Firmware/src/drivers/lsm303d/CMakeLists.txt
 modules/PX4Firmware/src/drivers/lsm303d/lsm303d.cpp
 modules/PX4Firmware/src/drivers/lsm303d/module.mk
+modules/PX4Firmware/src/drivers/mavflow/CMakeLists.txt
+modules/PX4Firmware/src/drivers/mavflow/CMakeLists.txt
+modules/PX4Firmware/src/drivers/mavflow/mavflow.cpp
+modules/PX4Firmware/src/drivers/mavflow/mavflow_params.c
 modules/PX4Firmware/src/drivers/mb12xx/CMakeLists.txt
 modules/PX4Firmware/src/drivers/mb12xx/mb12xx.cpp
 modules/PX4Firmware/src/drivers/mb12xx/module.mk

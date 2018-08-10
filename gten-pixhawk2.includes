@@ -212,3 +212,4 @@ modules/PX4Firmware/src/platforms/ros/nodes/manual_input
 modules/PX4Firmware/src/platforms/ros/nodes/mavlink
 modules/PX4Firmware/src/platforms/ros/nodes/position_estimator
 modules/PX4Firmware/src/systemcmds/tests
+modules/PX4Firmware/src/drivers/mavflow

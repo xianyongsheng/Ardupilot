@@ -3,6 +3,8 @@
 
 #include "GCS_Mavlink.h"
 
+#define MAVLINK_MSG_ID_OPTICAL_FLOW_RAD 106
+
 void Copter::gcs_send_heartbeat(void)
 {
     gcs_send_message(MSG_HEARTBEAT);
@@ -1889,7 +1891,11 @@ test_yaw = wrap_360_cd(yaw_cd )/100;
         handle_radio_status(msg, copter.DataFlash, copter.should_log(MASK_LOG_PM));
         break;
     }
-
+    case MAVLINK_MSG_ID_OPTICAL_FLOW_RAD:
+    {
+        copter.optflow.handle_msg(msg);
+        break;
+    }
     case MAVLINK_MSG_ID_LOG_REQUEST_DATA:
         copter.in_log_download = true;
         /* no break */

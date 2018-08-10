@@ -4,6 +4,7 @@
 #include "AP_OpticalFlow_SITL.h"
 #include "AP_OpticalFlow_Pixart.h"
 #include "AP_OpticalFlow_PX4Flow.h"
+#include "AP_OpticalFlow_MAVFlow.h"
 
 extern const AP_HAL::HAL& hal;
 
@@ -97,6 +98,9 @@ void OpticalFlow::init(void)
         if (backend == nullptr) {
             backend = AP_OpticalFlow_PX4Flow::detect(*this);
         }
+        if (backend == nullptr) {
+            backend = AP_OpticalFlow_MAVFlow::detect(*this);
+        }
 #elif CONFIG_HAL_BOARD == HAL_BOARD_SITL
         backend = new AP_OpticalFlow_SITL(*this);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BEBOP ||\
@@ -121,3 +125,9 @@ void OpticalFlow::update(void)
     _flags.healthy = (AP_HAL::millis() - _last_update_ms < 500);
 }
 
+void OpticalFlow::handle_msg(mavlink_message_t *msg)
+{
+    if (backend != nullptr){
+        backend->handle_msg(msg);
+    }
+}
