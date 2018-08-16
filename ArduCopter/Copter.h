@@ -151,6 +151,7 @@ public:
     void loop() override;
 
     void ano_get_data(Vector3f &angle, Vector3f &vel, Vector3f &pos, Vector3f &d_vel, Vector3f &d_pos);
+    void ano_send_user(uint8_t id, float* ano_user_data, uint8_t len);
 private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;

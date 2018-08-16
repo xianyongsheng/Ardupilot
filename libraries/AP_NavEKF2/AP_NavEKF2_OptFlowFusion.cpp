@@ -627,7 +627,7 @@ void NavEKF2_core::FuseOptFlow()
                 }
             }
         }
-
+        //Kfusion[5] = Kfusion[8] = Kfusion[15] = 0.0f;
         // calculate the innovation consistency test ratio
         flowTestRatio[obsIndex] = sq(innovOptFlow[obsIndex]) / (sq(MAX(0.01f * (float)frontend->_flowInnovGate, 1.0f)) * varInnovOptFlow[obsIndex]);
 
@@ -708,6 +708,8 @@ void NavEKF2_core::FuseOptFlow()
             }
         }
     }
+    //float data[]={terrainState *1000, Kfusion[5] *1000, Kfusion[8] *1000};
+    //copter.ano_send_user(0xf1,data,sizeof(data));
 }
 
 /********************************************************

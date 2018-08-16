@@ -33,6 +33,7 @@ uint16_t mavrng_dist_cm = 0;
 AP_OpticalFlow_MAVFlow::AP_OpticalFlow_MAVFlow(OpticalFlow &_frontend) :
     OpticalFlow_backend(_frontend)
 {
+    have_msg =false;
 }
 
 
@@ -58,36 +59,40 @@ bool AP_OpticalFlow_MAVFlow::setup_sensor(void)
 // update - read latest values from sensor and fill in x,y and totals.
 void AP_OpticalFlow_MAVFlow::update(void)
 {
+    if(!have_msg)   return;
+
+    struct OpticalFlow::OpticalFlow_state state {};
+    state.device_id = get_address();
+    if (flow.integration_time_us > 0) {
+        const Vector2f flowScaler = _flowScaler();
+        float flowScaleFactorX = 1.0f + 0.001f * flowScaler.x;
+        float flowScaleFactorY = 1.0f + 0.001f * flowScaler.y;
+        float integralToRate = 1.0e6 / flow.integration_time_us;
+
+        state.surface_quality = flow.quality;
+        state.flowRate = Vector2f(flow.integrated_y * flowScaleFactorX * -1.0f,
+                                  flow.integrated_x * flowScaleFactorY) * integralToRate;
+        state.bodyRate = Vector2f(flow.integrated_ygyro * -1.0f, flow.integrated_xgyro) * integralToRate;
+
+        _applyYaw(state.flowRate);
+        _applyYaw(state.bodyRate);
+
+        if(flow.distance >= 0.0f && 1){
+            mavrng_last_update_ms = AP_HAL::millis();
+            mavrng_dist_cm = flow.distance * 100.0f;
+        }
+        have_msg = false;
+    }
+    _update_frontend(state);
 }
 
 void AP_OpticalFlow_MAVFlow::handle_msg(mavlink_message_t *msg)
 {
     /* optical flow */
-        mavlink_optical_flow_rad_t flow;
-        mavlink_msg_optical_flow_rad_decode(msg, &flow);
-
-        struct OpticalFlow::OpticalFlow_state state {};
-        state.device_id = get_address();
-        if (flow.integration_time_us > 0) {
-            const Vector2f flowScaler = _flowScaler();
-            float flowScaleFactorX = 1.0f + 0.001f * flowScaler.x;
-            float flowScaleFactorY = 1.0f + 0.001f * flowScaler.y;
-            float integralToRate = 1.0e6 / flow.integration_time_us;
-
-            state.surface_quality = flow.quality;
-            state.flowRate = Vector2f(flow.integrated_y * flowScaleFactorX * -1.0f,
-                                      flow.integrated_x * flowScaleFactorY) * integralToRate;
-            state.bodyRate = Vector2f(flow.integrated_ygyro * -1.0f, flow.integrated_xgyro) * integralToRate;
-
-            _applyYaw(state.flowRate);
-            _applyYaw(state.bodyRate);
-
-            if(flow.distance >= 0.0f){
-                mavrng_last_update_ms = AP_HAL::millis();
-                mavrng_dist_cm = flow.distance * 100.0f;
-            }
-        }
-        _update_frontend(state);
+    mavlink_msg_optical_flow_rad_decode(msg, &flow);
+    if (flow.integration_time_us > 0) {
+        have_msg = true;
+    }
 }
 // timer to read sensor
 void AP_OpticalFlow_MAVFlow::timer(void)

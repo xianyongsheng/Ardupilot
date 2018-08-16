@@ -3,9 +3,35 @@
 
 static uint8_t ano_send_buff[50];
 
-#define ano_data_send(s,l)	if(hal.uartC->txspace()>=l)hal.uartC->write(s,l)
+#define ano_data_send(s,l)	if(hal.uartA->txspace()>=l)hal.uartA->write(s,l)
 
 #define ANO_SDATUS	0.0f,1.0f,2.0f,0,0,0
+
+
+void Copter::ano_send_user(uint8_t id, float* ano_user_data, uint8_t len)
+{
+    uint8_t _cnt=0;
+    int16_t _temp;
+    ano_send_buff[_cnt++]=0xAA;
+    ano_send_buff[_cnt++]=0xAA;
+    ano_send_buff[_cnt++]=id;
+    ano_send_buff[_cnt++]=0;
+
+    for(uint8_t i=0;i<len;i++){
+        _temp = (int16_t)ano_user_data[i];
+        ano_send_buff[_cnt++]=BYTE1(_temp);
+        ano_send_buff[_cnt++]=BYTE0(_temp);
+    }
+    ano_send_buff[3] = _cnt-4;
+
+    uint8_t sum = 0;
+    for(uint8_t i=0;i<_cnt;i++)
+        sum += ano_send_buff[i];
+
+    ano_send_buff[_cnt++]=sum;
+
+    send_data(ano_send_buff, _cnt);
+}
 
 void Copter::ano_get_data(Vector3f& angle,Vector3f& vel,Vector3f& pos,Vector3f& d_vel,Vector3f& d_pos)
 {

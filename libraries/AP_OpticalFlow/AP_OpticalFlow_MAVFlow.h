@@ -24,6 +24,9 @@ public:
 private:
     AP_HAL::OwnPtr<AP_HAL::Device> dev;
 
+    mavlink_optical_flow_rad_t flow;
+    bool    have_msg;
+
     // setup sensor
     bool setup_sensor(void);
 

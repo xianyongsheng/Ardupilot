@@ -1893,7 +1893,9 @@ test_yaw = wrap_360_cd(yaw_cd )/100;
     }
     case MAVLINK_MSG_ID_OPTICAL_FLOW_RAD:
     {
-        copter.optflow.handle_msg(msg);
+        if(copter.g.k_param_optflow_enabled){
+            copter.optflow.handle_msg(msg);
+        }
         break;
     }
     case MAVLINK_MSG_ID_LOG_REQUEST_DATA:
