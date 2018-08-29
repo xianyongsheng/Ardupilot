@@ -125,6 +125,11 @@ bool GCS_MAVLINK::have_flow_control(void)
   save==false so we don't want the save to happen when the user connects the
   ground station.
  */
+/*
+	处理一个请求以改变流速率。请注意，直升机经过
+	保存==false，所以我们不希望保存发生在用户连接的时候
+	地面站。
+*/
 void GCS_MAVLINK::handle_request_data_stream(mavlink_message_t *msg, bool save)
 {
     mavlink_request_data_stream_t packet;
@@ -198,6 +203,7 @@ void GCS_MAVLINK::handle_param_request_list(mavlink_message_t *msg)
     }
 
     // Start sending parameters - next call to ::update will kick the first one out
+    //开始发送参数——下一个调用：：更新将把第一个参数踢出去
     _queued_parameter = AP_Param::first(&_queued_parameter_token, &_queued_parameter_type);
     _queued_parameter_index = 0;
     _queued_parameter_count = AP_Param::count_parameters();
@@ -275,6 +281,7 @@ void GCS_MAVLINK::handle_param_set(mavlink_message_t *msg, DataFlash_Class *Data
 }
 
 // see if we should send a stream now. Called at 50Hz
+//看我们现在是否应该发送一条信息。50赫兹
 bool GCS_MAVLINK::stream_trigger(enum streams stream_num)
 {
     if (stream_num >= NUM_STREAMS) {
@@ -288,6 +295,8 @@ bool GCS_MAVLINK::stream_trigger(enum streams stream_num)
         if (chan_is_streaming & (1U<<(chan-MAVLINK_COMM_0))) {
             // if currently streaming then check if all streams are disabled
             // to allow runtime detection of user disabling streaming
+            //如果当前流媒体播放，则检查所有流是否禁用
+			//允许运行时检测用户禁用流
             bool is_streaming = false;
             for (uint8_t i=0; i<stream_num; i++) {
                 if (streamRates[stream_num] > 0) {
@@ -296,6 +305,7 @@ bool GCS_MAVLINK::stream_trigger(enum streams stream_num)
             }
             if (!is_streaming) {
                 // all streams have been turned off, clear the bit flag
+                //所有的流都被关闭了，清除了位标志
                 chan_is_streaming &= ~(1U<<(chan-MAVLINK_COMM_0));
             }
         }
@@ -306,6 +316,7 @@ bool GCS_MAVLINK::stream_trigger(enum streams stream_num)
 
     if (stream_ticks[stream_num] == 0) {
         // we're triggering now, setup the next trigger point
+        //我们现在触发，设置下一个触发点
         if (rate > 50) {
             rate = 50;
         }

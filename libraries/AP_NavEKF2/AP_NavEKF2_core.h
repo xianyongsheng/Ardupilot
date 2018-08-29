@@ -368,6 +368,8 @@ private:
     // the states are available in two forms, either as a Vector31, or
     // broken down as individual elements. Both are equivalent (same
     // memory)
+    //这些状态有两种形式，可以作为矢量31，也可以是
+	//分解为单个元素。都是等价的(相同内存)
     Vector28 statesArray;
     struct state_elements {
         Vector3f    angErr;         // 0..2
@@ -739,6 +741,7 @@ private:
     Matrix24 KH;                    // intermediate result used for covariance updates
     Matrix24 KHP;                   // intermediate result used for covariance updates
     Matrix24 P;                     // covariance matrix
+    								//协方差矩阵
     imu_ring_buffer_t<imu_elements> storedIMU;      // IMU data buffer
     obs_ring_buffer_t<gps_elements> storedGPS;      // GPS data buffer
     obs_ring_buffer_t<mag_elements> storedMag;      // Magnetometer data buffer
@@ -849,6 +852,7 @@ private:
     output_elements outputDataNew;  // output state data at the current time step
     output_elements outputDataDelayed; // output state data at the current time step
     Vector3f delAngCorrection;      // correction applied to delta angles used by output observer to track the EKF
+    								// 通过EKF使用观测输出修正delta角
     Vector3f velErrintegral;        // integral of output predictor NED velocity tracking error (m)
     Vector3f posErrintegral;        // integral of output predictor NED position tracking error (m.sec)
     float innovYaw;                 // compass yaw angle innovation (rad)

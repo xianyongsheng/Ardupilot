@@ -215,14 +215,17 @@ void AC_WPNav::loiter_soften_for_landing()
     const Vector3f& curr_pos = _inav.get_position();
 
     // set target position to current position
+    // 设置目标位置为当前位置
     _pos_control.set_xy_target(curr_pos.x, curr_pos.y);
     _pos_control.freeze_ff_xy();
 }
 
 /// set_pilot_desired_acceleration - sets pilot desired acceleration from roll and pitch stick input
+// 设置目标加速度
 void AC_WPNav::set_pilot_desired_acceleration(float control_roll, float control_pitch)
 {
     // convert pilot input to desired acceleration in cm/s/s
+    // 转换遥控输入到目标加速度
     _pilot_accel_fwd_cms = -control_pitch * _loiter_accel_cmss / 4500.0f;
     _pilot_accel_rgt_cms = control_roll * _loiter_accel_cmss / 4500.0f;
 }

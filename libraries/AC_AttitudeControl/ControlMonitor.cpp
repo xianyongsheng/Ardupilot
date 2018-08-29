@@ -16,6 +16,8 @@ void AC_AttitudeControl::control_monitor_filter_pid(float value, float &rms)
     const float filter_constant = 0.99f;
     // we don't do the sqrt() here as it is quite expensive. That is
     // done when reporting a result
+    //我们这里不做sqrt（），因为它非常昂贵。
+	//这是在报告结果时做的
     rms = filter_constant * rms + (1.0f - filter_constant) * sq(value);
 }
 

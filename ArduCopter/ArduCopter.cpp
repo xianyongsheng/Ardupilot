@@ -81,6 +81,12 @@
   should be listed here, along with how often they should be called (in hz)
   and the maximum time they are expected to take (in microseconds)
  */
+/*
+	快速cpu的调度器表——除了fastloop（）之外的所有常规任务
+	应该在这里列出，以及它们应该被调用的频率（在hz）
+	以及它们期望的最大时间（以微秒计）
+*/
+
 const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(rc_loop,              100,    130),
     SCHED_TASK(throttle_loop,         50,     75),
@@ -165,6 +171,7 @@ void Copter::setup()
     cliSerial = hal.console;
 
     // Load the default values of variables listed in var_info[]s
+    // 载入varinfo s中列出的变量的默认值
     AP_Param::setup_sketch_defaults();
 
     // setup storage layout for copter
@@ -259,16 +266,20 @@ void Copter::loop()
 void Copter::fast_loop()
 {
     // update INS immediately to get current gyro data populated
+    //立即更新，以获得当前的陀螺仪数据
     ins.update();
     
     // run low level rate controllers that only require IMU data
+    // 低通速率控制器，仅需要IMU数据
     attitude_control->rate_controller_run();
 
     // send outputs to the motors library immediately
+    // 立即发送输出到电机库
     motors_output();
 
     // run EKF state estimator (expensive)
     // --------------------
+    // EKF状态机估计
     read_AHRS();
 
 #if FRAME_CONFIG == HELI_FRAME
@@ -277,26 +288,33 @@ void Copter::fast_loop()
 
     // Inertial Nav
     // --------------------
+    //惯导
     read_inertia();
 
     // check if ekf has reset target heading or position
+    // 检查ekf是否重置了目标方位角或位置
     check_ekf_reset();
 
     // run the attitude controllers
+    // 姿态控制器
     update_flight_mode();
 
     // update home from EKF if necessary
+    // 如果必要从EKF跟新Home点
     update_home_from_EKF();
 
     // check if we've landed or crashed
+    // 检查是否降落或者坠机
     update_land_and_crash_detectors();
 
 #if MOUNT == ENABLED
     // camera mount's fast update
+    // 相机快速更新
     camera_mount.update_fast();
 #endif
 
     // log sensor health
+    // 日志传感器健康
     if (should_log(MASK_LOG_ANY)) {
         Log_Sensor_Health();
     }
@@ -576,29 +594,35 @@ void Copter::init_simple_bearing()
 }
 
 // update_simple_mode - rotates pilot input if we are in simple mode
+//旋转遥控输入如果我们处在简单模式
 void Copter::update_simple_mode(void)
 {
     float rollx, pitchx;
 
     // exit immediately if no new radio frame or not in simple mode
+    // 立即退出，如果我们没有新的遥控帧或者不是简单模式
     if (ap.simple_mode == 0 || !ap.new_radio_frame) {
         return;
     }
 
     // mark radio frame as consumed
+    // 标记消耗的遥控帧
     ap.new_radio_frame = false;
 
     if (ap.simple_mode == 1) {
         // rotate roll, pitch input by -initial simple heading (i.e. north facing)
+        // 简单无头模式（正北）旋转RP输入
         rollx = channel_roll->get_control_in()*simple_cos_yaw - channel_pitch->get_control_in()*simple_sin_yaw;
         pitchx = channel_roll->get_control_in()*simple_sin_yaw + channel_pitch->get_control_in()*simple_cos_yaw;
     }else{
         // rotate roll, pitch input by -super simple heading (reverse of heading to home)
+        // 超级无头模式 （背对家得方向）
         rollx = channel_roll->get_control_in()*super_simple_cos_yaw - channel_pitch->get_control_in()*super_simple_sin_yaw;
         pitchx = channel_roll->get_control_in()*super_simple_sin_yaw + channel_pitch->get_control_in()*super_simple_cos_yaw;
     }
 
     // rotate roll, pitch input from north facing to vehicle's perspective
+    // 从飞机的视角旋转RP输入
     channel_roll->set_control_in(rollx*ahrs.cos_yaw() + pitchx*ahrs.sin_yaw());
     channel_pitch->set_control_in(-rollx*ahrs.sin_yaw() + pitchx*ahrs.cos_yaw());
 }

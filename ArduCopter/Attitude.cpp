@@ -46,6 +46,7 @@ float Copter::get_pilot_desired_yaw_rate(int16_t stick_angle)
     float yaw_request;
 
     // calculate yaw rate request
+    // 计算航向速率需求
     if (g2.acro_y_expo <= 0) {
         yaw_request = stick_angle * g.acro_yaw_p;
     } else {
@@ -182,6 +183,7 @@ float Copter::get_pilot_desired_throttle(int16_t throttle_control, float thr_mid
 float Copter::get_pilot_desired_climb_rate(float throttle_control)
 {
     // throttle failsafe check
+    // 失联保护检查
     if( failsafe.radio ) {
         return 0.0f;
     }
@@ -192,20 +194,26 @@ float Copter::get_pilot_desired_climb_rate(float throttle_control)
     float deadband_bottom = mid_stick - g.throttle_deadzone;
 
     // ensure a reasonable throttle value
+    // 确保一个合理的油门值
     throttle_control = constrain_float(throttle_control,0.0f,1000.0f);
 
     // ensure a reasonable deadzone
+    //确保一个合理的死区值
     g.throttle_deadzone = constrain_int16(g.throttle_deadzone, 0, 400);
 
     // check throttle is above, below or in the deadband
+    // 检查油门位置，上中下
     if (throttle_control < deadband_bottom) {
         // below the deadband
+        // 低于死区
         desired_rate = g.pilot_velocity_z_max * (throttle_control-deadband_bottom) / deadband_bottom;
     }else if (throttle_control > deadband_top) {
         // above the deadband
+        // 高于死区
         desired_rate = g.pilot_velocity_z_max * (throttle_control-deadband_top) / (1000.0f-deadband_top);
     }else{
         // must be in the deadband
+        // 必须在死区
         desired_rate = 0.0f;
     }
 

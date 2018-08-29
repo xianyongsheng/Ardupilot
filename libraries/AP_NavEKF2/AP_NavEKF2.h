@@ -347,6 +347,7 @@ private:
     AP_Int16  _gpsVelInnovGate;     // Percentage number of standard deviations applied to GPS velocity innovation consistency check
     AP_Int16  _gpsPosInnovGate;     // Percentage number of standard deviations applied to GPS position innovation consistency check
     AP_Int16  _hgtInnovGate;        // Percentage number of standard deviations applied to height innovation consistency check
+    //在高度创新一致性检查中应用的标准偏差的百分比
     AP_Int16  _magInnovGate;        // Percentage number of standard deviations applied to magnetometer innovation consistency check
     AP_Int16  _tasInnovGate;        // Percentage number of standard deviations applied to true airspeed innovation consistency check
     AP_Int8  _magCal;               // Sets activation condition for in-flight magnetometer calibration

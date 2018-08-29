@@ -457,17 +457,21 @@ void NavEKF2_core::CovarianceInit()
 *                 UPDATE FUNCTIONS                      *
 ********************************************************/
 // Update Filter States - this should be called whenever new IMU data is available
+//更新滤波器转台 - 在IMU有新数据的时候调用
 void NavEKF2_core::UpdateFilter(bool predict)
 {
     // Set the flag to indicate to the filter that the front-end has given permission for a new state prediction cycle to be started
+    ////设置标志以指示过滤器，前端已经允许启动新的状态预测周期。
     startPredictEnabled = predict;
 
     // don't run filter updates if states have not been initialised
+    //如果没有初始化状态，则不要运行过滤器更新
     if (!statesInitialised) {
         return;
     }
 
     // start the timer used for load measurement
+    //开始记录测量时间
 #if EK2_DISABLE_INTERRUPTS
     irqstate_t istate = irqsave();
 #endif
@@ -476,48 +480,63 @@ void NavEKF2_core::UpdateFilter(bool predict)
     // TODO - in-flight restart method
 
     //get starting time for update step
+    //获得更新步骤的开始时间
     imuSampleTime_ms = frontend->imuSampleTime_us / 1000;
 
     // Check arm status and perform required checks and mode changes
+    //检查解锁状态并执行所需的检查和模式更改
     controlFilterModes();
 
     // read IMU data as delta angles and velocities
+    //读取IMU数据作为delta角和速度
     readIMUData();
 
     // Run the EKF equations to estimate at the fusion time horizon if new IMU data is available in the buffer
+    //运行EKF方程，如果在缓冲区中有新的IMU数据，则可以在融合时间范围内进行估计。
     if (runUpdates) {
         // Predict states using IMU data from the delayed time horizon
+        //预测状态，使用来自延迟时间范围的IMU数据
         UpdateStrapdownEquationsNED();
 
         // Predict the covariance growth
+        //预测协方差增长
         CovariancePrediction();
 
         // Update states using  magnetometer data
+        //更新状态，使用磁力计数据
         SelectMagFusion();
 
         // Update states using GPS and altimeter data
+        //更新状态，使用GPS和高度计数据
         SelectVelPosFusion();
 
         // Update states using range beacon data
+        //更新状态，使用范围信标
         SelectRngBcnFusion();
 
         // Update states using optical flow data
+        //更新状态，使用光流
         SelectFlowFusion();
 
         // Update states using airspeed data
+        //更新状态，使用空速计
         SelectTasFusion();
 
         // Update states using sideslip constraint assumption for fly-forward vehicles
+        //更新状态，使用侧滑限制假设
         SelectBetaFusion();
 
         // Update the filter status
+        //更新滤波器状态
         updateFilterStatus();
     }
 
     // Wind output forward from the fusion to output time horizon
+    //从融合到输出时间曾，计算输出
     calcOutputStates();
 
     // stop the timer used for load measurement
+    //停止记录测量时间
     hal.util->perf_end(_perf_UpdateFilter);
 #if EK2_DISABLE_INTERRUPTS
     irqrestore(istate);
@@ -543,6 +562,13 @@ void NavEKF2_core::correctDeltaVelocity(Vector3f &delVel, float delVelDT)
  * not used by the EKF equations, which instead estimate the error in the attitude of
  * the vehicle when each observtion is fused. This attitude error is then used to correct
  * the quaternion.
+*/
+/*
+	使用延迟的IMU测量更新四元数、速度和位置状态
+	因为EKF在一个延迟的时间范围内运行。
+	注意，四元数是不被EKF方程所使用，
+	当每一项观察都融合在一起的时候，它可以用来估计飞机错误的姿态
+	这个姿态误差被用来修正四元数。
 */
 void NavEKF2_core::UpdateStrapdownEquationsNED()
 {
@@ -577,6 +603,8 @@ void NavEKF2_core::UpdateStrapdownEquationsNED()
 
     // if we are not aiding, then limit the horizontal magnitude of acceleration
     // to prevent large manoeuvre transients disturbing the attitude
+    //如果我们不协助，那么就限制水平的加速度
+	//防止大的机动转移，干扰人的态度
     if ((PV_AidingMode == AID_NONE) && (accNavMagHoriz > 5.0f)) {
         float gain = 5.0f/accNavMagHoriz;
         delVelNav.x *= gain;
@@ -612,58 +640,90 @@ void NavEKF2_core::UpdateStrapdownEquationsNED()
  * "Recursive Attitude Estimation in the Presence of Multi-rate and Multi-delay Vector Measurements"
  * A Khosravian, J Trumpf, R Mahony, T Hamel, Australian National University
 */
+/*
+	将PVA解决方案从融合时间视界扩展到当前时间层
+	使用简单的观察者，它执行两个功能：
+	1）修正EKF所使用的延迟时间范围。
+	2）将一个LPF应用于状态的修正，以防止由于测量而在各州“步进”
+	融合将不需要的噪音引入到控制回路中。
+	使用补充过滤器来纠正EKF中的时间延迟的灵感
+	是基于一个khosra维的作品。
+	*
+	“在多速率和多延迟矢量测量的情况下，递归态度估计”
+	澳大利亚国立大学的科斯拉维，J特朗普，R Mahony，T Hamel
+*/
+
 void NavEKF2_core::calcOutputStates()
 {
     // apply corrections to the IMU data
+    //应用IMU数据进行修正
     Vector3f delAngNewCorrected = imuDataNew.delAng;
     Vector3f delVelNewCorrected = imuDataNew.delVel;
     correctDeltaAngle(delAngNewCorrected, imuDataNew.delAngDT);
     correctDeltaVelocity(delVelNewCorrected, imuDataNew.delVelDT);
 
-    // apply corections to track EKF solution
+    // apply corrections to track EKF solution
+    // 通过EKF解决修正
     Vector3f delAng = delAngNewCorrected + delAngCorrection;
 
     // convert the rotation vector to its equivalent quaternion
+    //将旋转矢量转换成等效的四元数
     Quaternion deltaQuat;
     deltaQuat.from_axis_angle(delAng);
 
     // update the quaternion states by rotating from the previous attitude through
     // the delta angle rotation quaternion and normalise
+    //通过从先前的态度转到四元数状态来更新四元数状态
+	//delta角旋转四元数和归一化
     outputDataNew.quat *= deltaQuat;
     outputDataNew.quat.normalize();
 
     // calculate the body to nav cosine matrix
+    // 计算 机体到NAV余弦矩阵
     Matrix3f Tbn_temp;
     outputDataNew.quat.rotation_matrix(Tbn_temp);
 
     // transform body delta velocities to delta velocities in the nav frame
+    //将物体的delta速度转换为NAV框架中的delta速度
     Vector3f delVelNav  = Tbn_temp*delVelNewCorrected;
     delVelNav.z += GRAVITY_MSS*imuDataNew.delVelDT;
 
     // save velocity for use in trapezoidal integration for position calcuation
+    // 保存速度，节省在梯形积分中用于位置计算的速度
     Vector3f lastVelocity = outputDataNew.velocity;
 
-    // sum delta velocities to get velocity
+    // sum delta velocities to get velocity、
+    //积分 delta速度 得到速度
     outputDataNew.velocity += delVelNav;
 
     // apply a trapezoidal integration to velocities to calculate position
+    //对速度进行梯形积分以计算位置
     outputDataNew.position += (outputDataNew.velocity + lastVelocity) * (imuDataNew.delVelDT*0.5f);
 
     // If the IMU accelerometer is offset from the body frame origin, then calculate corrections
     // that can be added to the EKF velocity and position outputs so that they represent the velocity
     // and position of the body frame origin.
     // Note the * operator has been overloaded to operate as a dot product
+    //如果IMU加速度计被从身体框架原点偏移，然后计算修正
+	//可以被添加到EKF速度和位置输出中这样它们就代表了速度
+	//和身体框架原点的位置。
+	//注意，操作符已经超载，作为点积操作。
     if (!accelPosOffset.is_zero()) {
         // calculate the average angular rate across the last IMU update
         // note delAngDT is prevented from being zero in readIMUData()
+        //计算最近一次IMU更新的平均角速度
+		//注意，在准备数据（）中，delAngDT被禁止为零。
         Vector3f angRate = imuDataNew.delAng * (1.0f/imuDataNew.delAngDT);
 
         // Calculate the velocity of the body frame origin relative to the IMU in body frame
         // and rotate into earth frame. Note % operator has been overloaded to perform a cross product
+        //计算身体框架相对于身体框架内的IMU的速度
+		//旋转到地球框架。 注意%操作符被重载以执行叉乘
         Vector3f velBodyRelIMU = angRate % (- accelPosOffset);
         velOffsetNED = Tbn_temp * velBodyRelIMU;
 
         // calculate the earth frame position of the body frame origin relative to the IMU
+        //计算与IMU有关的身体框架原点的地球框架位置
         posOffsetNED = Tbn_temp * (- accelPosOffset);
     } else {
         velOffsetNED.zero();
@@ -671,19 +731,25 @@ void NavEKF2_core::calcOutputStates()
     }
 
     // store INS states in a ring buffer that with the same length and time coordinates as the IMU data buffer
+    //存储在一个环缓冲区中的状态，其长度和时间与IMU数据缓冲区相同。
     if (runUpdates) {
         // store the states at the output time horizon
+        // 储存状态在输出时间层
         storedOutput[storedIMU.get_youngest_index()] = outputDataNew;
 
         // recall the states from the fusion time horizon
+        // 从融合时间曾调回状态
         outputDataDelayed = storedOutput[storedIMU.get_oldest_index()];
 
         // compare quaternion data with EKF quaternion at the fusion time horizon and calculate correction
-
+		// 在融合时间曾比较四元数数据和EKF四元数和计算修正值
+		
         // divide the demanded quaternion by the estimated to get the error
+        //将所要求的四元数除以估计得到误差
         Quaternion quatErr = stateStruct.quat / outputDataDelayed.quat;
 
         // Convert to a delta rotation using a small angle approximation
+        //用一个小角度近似值转换成一个delta旋转
         quatErr.normalize();
         Vector3f deltaAngErr;
         float scaler;
@@ -698,30 +764,39 @@ void NavEKF2_core::calcOutputStates()
 
         // calculate a gain that provides tight tracking of the estimator states and
         // adjust for changes in time delay to maintain consistent damping ratio of ~0.7
+        //计算一个增益，它提供了对估计量状态的紧密跟踪
+		//调整时间延迟的变化以保持一致的阻尼比为0。7
         float timeDelay = 1e-3f * (float)(imuDataNew.time_ms - imuDataDelayed.time_ms);
         timeDelay = fmaxf(timeDelay, dtIMUavg);
         float errorGain = 0.5f / timeDelay;
 
         // calculate a corrrection to the delta angle
         // that will cause the INS to track the EKF quaternions
+        //计算一个到delta角的修正
+		//这将导致IMS跟踪EKF四元数
         delAngCorrection = deltaAngErr * errorGain * dtIMUavg;
 
         // calculate velocity and position tracking errors
+        // 计算速度和位置跟踪误差
         Vector3f velErr = (stateStruct.velocity - outputDataDelayed.velocity);
         Vector3f posErr = (stateStruct.position - outputDataDelayed.position);
 
         // collect magnitude tracking error for diagnostics
+        //收集诊断的规模跟踪误差
         outputTrackError.x = deltaAngErr.length();
         outputTrackError.y = velErr.length();
         outputTrackError.z = posErr.length();
 
         // convert user specified time constant from centi-seconds to seconds
+        //将用户指定的时间常数从厘秒转换为秒
         float tauPosVel = constrain_float(0.01f*(float)frontend->_tauVelPosOutput, 0.1f, 0.5f);
 
         // calculate a gain to track the EKF position states with the specified time constant
+        //计算以指定的时间常数跟踪EKF位置的增益
         float velPosGain = dtEkfAvg / constrain_float(tauPosVel, dtEkfAvg, 10.0f);
 
         // use a PI feedback to calculate a correction that will be applied to the output state history
+        //使用PI反馈来计算将应用于输出状态历史的修正
         posErrintegral += posErr;
         velErrintegral += velErr;
         Vector3f velCorrection = velErr * velPosGain + velErrintegral * sq(velPosGain) * 0.1f;
@@ -731,21 +806,28 @@ void NavEKF2_core::calcOutputStates()
         // this method is too expensive to use for the attitude states due to the quaternion operations required
         // but does not introduce a time delay in the 'correction loop' and allows smaller tracking time constants
         // to be used
+        //循环通过输出过滤器状态历史并将修正应用到速度和位置状态
+		//这个方法太贵了，不能用于姿态状态，因为需要四元数操作。
+		//但在“校正回路”中没有引s入时间延迟，并允许更小的跟踪时间常量使用
         output_elements outputStates;
         for (unsigned index=0; index < imu_buffer_length; index++) {
             outputStates = storedOutput[index];
 
             // a constant  velocity correction is applied
+            //速度修正
             outputStates.velocity += velCorrection;
 
             // a constant position correction is applied
+            //位置修正
             outputStates.position += posCorrection;
 
             // push the updated data to the buffer
+            // 推送更新数据到buff
             storedOutput[index] = outputStates;
         }
 
         // update output state to corrected values
+        // 更新输出状态到修正值
         outputDataNew = storedOutput[storedIMU.get_youngest_index()];
 
     }
@@ -756,6 +838,12 @@ void NavEKF2_core::calcOutputStates()
  * The script file used to generate these and other equations in this filter can be found here:
  * https://github.com/priseborough/InertialNav/blob/master/derivations/RotationVectorAttitudeParameterisation/GenerateNavFilterEquations.m
 */
+/*
+	用Matlab符号工具箱生成的代数方程计算预测的状态协方差矩阵。
+	在这个过滤器中用来生成这些和其他等式的脚本文件可以在这里找到：
+	* https://github.com/priseborough/InertialNav/blob/master/derivations/RotationVectorAttitudeParameterisation/GenerateNavFilterEquations.m
+*/
+
 void NavEKF2_core::CovariancePrediction()
 {
     hal.util->perf_begin(_perf_CovariancePrediction);
@@ -793,12 +881,18 @@ void NavEKF2_core::CovariancePrediction()
     // use filtered height rate to increase wind process noise when climbing or descending
     // this allows for wind gradient effects.
     // filter height rate using a 10 second time constant filter
-    dt = imuDataDelayed.delAngDT;
+	//计算协方差预测过程噪声
+	//使用过滤后的高度速率在上升或下降时增加风处理噪声
+	//这允许风梯度效应。
+	//使用10秒时间常量滤波器来过滤高速率
+	dt = imuDataDelayed.delAngDT;
     float alpha = 0.1f * dt;
     hgtRate = hgtRate * (1.0f - alpha) - stateStruct.velocity.z * alpha;
 
     // use filtered height rate to increase wind process noise when climbing or descending
     // this allows for wind gradient effects.
+    //使用过滤后的高度速率在上升或下降时增加风处理噪声
+	//这允许风梯度效应。
     windVelSigma  = dt * constrain_float(frontend->_windVelProcessNoise, 0.0f, 1.0f) * (1.0f + constrain_float(frontend->_wndVarHgtRateScale, 0.0f, 1.0f) * fabsf(hgtRate));
     dAngBiasSigma = sq(dt) * constrain_float(frontend->_gyroBiasProcessNoise, 0.0f, 1.0f);
     dVelBiasSigma = sq(dt) * constrain_float(frontend->_accelBiasProcessNoise, 0.0f, 1.0f);
@@ -844,6 +938,8 @@ void NavEKF2_core::CovariancePrediction()
 
     // calculate the predicted covariance due to inertial sensor error propagation
     // we calculate the upper diagonal and copy to take advantage of symmetry
+    //计算由于惯性传感器错误传播而导致的协方差
+	//我们计算上对角线和复制以利用对称性
     SF[0] = daz_b/2 - (daz*daz_s)/2;
     SF[1] = day_b/2 - (day*day_s)/2;
     SF[2] = dax_b/2 - (dax*dax_s)/2;
@@ -1225,6 +1321,7 @@ void NavEKF2_core::CovariancePrediction()
     }
 
     // Copy upper diagonal to lower diagonal taking advantage of symmetry
+    //复制上对角线到下对角线利用对称
     for (uint8_t colIndex=0; colIndex<=stateIndexLim; colIndex++)
     {
         for (uint8_t rowIndex=0; rowIndex<colIndex; rowIndex++)
@@ -1234,6 +1331,7 @@ void NavEKF2_core::CovariancePrediction()
     }
 
     // add the general state process noise variances
+    //添加一般状态过程噪声差异
     for (uint8_t i=0; i<=stateIndexLim; i++)
     {
         nextP[i][i] = nextP[i][i] + processNoise[i];
@@ -1243,6 +1341,10 @@ void NavEKF2_core::CovariancePrediction()
     // growth by setting the predicted to the previous values
     // This prevent an ill conditioned matrix from occurring for long periods
     // without GPS
+    //如果总位置差异超过1e4（1亿），则停止协方差
+	//通过将预测设置为先前的值来实现增长
+	//这可以防止一个病态的矩阵在很长一段时间内发生
+	//没有全球定位系统
     if ((P[6][6] + P[7][7]) > 1e4f)
     {
         for (uint8_t i=6; i<=7; i++)
@@ -1256,9 +1358,11 @@ void NavEKF2_core::CovariancePrediction()
     }
 
     // copy covariances to output
+    //复制协方差到输出
     CopyCovariances();
 
     // constrain diagonals to prevent ill-conditioning
+    //限制对角线，防止不良条件作用
     ConstrainVariances();
 
     hal.util->perf_end(_perf_CovariancePrediction);
@@ -1356,6 +1460,7 @@ void NavEKF2_core::CopyCovariances()
 }
 
 // constrain variances (diagonal terms) in the state covariance matrix to  prevent ill-conditioning
+//在状态协方差矩阵中限制方差（对角项）以防止不良条件作用
 void NavEKF2_core::ConstrainVariances()
 {
     for (uint8_t i=0; i<=2; i++) P[i][i] = constrain_float(P[i][i],0.0f,1.0f); // attitude error

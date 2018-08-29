@@ -107,6 +107,7 @@ void AC_PosControl::set_dt_xy(float dt_xy)
 void AC_PosControl::set_speed_z(float speed_down, float speed_up)
 {
     // ensure speed_down is always negative
+    // 确保下降速度始终为负
     speed_down = -fabsf(speed_down);
 
     if ((fabsf(_speed_down_cms-speed_down) > 1.0f) || (fabsf(_speed_up_cms-speed_up) > 1.0f)) {
@@ -331,17 +332,22 @@ void AC_PosControl::update_z_controller()
     _last_update_z_ms = now;
 
     // check for ekf altitude reset
+    // 检查EKF高度复位
     check_for_ekf_z_reset();
 
     // check if leash lengths need to be recalculated
+    // 检查皮带长度如果需要重新计算
     calc_leash_length_z();
 
     // call position controller
+    // 位置控制器
     pos_to_rate_z();
 }
 
 /// calc_leash_length - calculates the vertical leash lengths from maximum speed, acceleration
 ///     called by pos_to_rate_z if z-axis speed or accelerations are changed
+//计算垂直皮带长度通过最大的速度和加速度
+//被pos_to_rate_z调用，如果z轴的速度或者加速度被改变
 void AC_PosControl::calc_leash_length_z()
 {
     if (_flags.recalc_leash_z) {
@@ -354,6 +360,9 @@ void AC_PosControl::calc_leash_length_z()
 // pos_to_rate_z - position to rate controller for Z axis
 // calculates desired rate in earth-frame z axis and passes to rate controller
 // vel_up_max, vel_down_max should have already been set before calling this method
+//波托拉茨-对Z轴的速率控制器的位置
+//计算地球框架z轴的期望速度并传递给速率控制器
+//velupmax，veldownmax应该在调用这个方法之前已经设置好了
 void AC_PosControl::pos_to_rate_z()
 {
     float curr_alt = _inav.get_altitude();
@@ -366,6 +375,7 @@ void AC_PosControl::pos_to_rate_z()
     _pos_error.z = _pos_target.z - curr_alt;
 
     // do not let target altitude get too far from current altitude
+    // 避免目标高度距离当前高度太远
     if (_pos_error.z > _leash_up_z) {
         _pos_target.z = curr_alt + _leash_up_z;
         _pos_error.z = _leash_up_z;
@@ -382,6 +392,7 @@ void AC_PosControl::pos_to_rate_z()
 
     // check speed limits
     // To-Do: check these speed limits here or in the pos->rate controller
+    // 检查速度限制
     _limit.vel_up = false;
     _limit.vel_down = false;
     if (_vel_target.z < _speed_down_cms) {
@@ -1011,26 +1022,32 @@ void AC_PosControl::lean_angles_to_accel(float& accel_x_cmss, float& accel_y_cms
 }
 
 /// calc_leash_length - calculates the horizontal leash length given a maximum speed, acceleration and position kP gain
+// 计算水平皮带长度给予一个最大的速度和加速度和位置KP增益
 float AC_PosControl::calc_leash_length(float speed_cms, float accel_cms, float kP) const
 {
     float leash_length;
 
     // sanity check acceleration and avoid divide by zero
+    // 检查加速度大于0，避免除于0
     if (accel_cms <= 0.0f) {
         accel_cms = POSCONTROL_ACCELERATION_MIN;
     }
 
     // avoid divide by zero
+    // 避免除于0
     if (kP <= 0.0f) {
         return POSCONTROL_LEASH_LENGTH_MIN;
     }
 
     // calculate leash length
+    // 计算皮带长度
     if(speed_cms <= accel_cms / kP) {
         // linear leash length based on speed close in
+        //根据速度接近的线性皮带长度
         leash_length = speed_cms / kP;
     }else{
         // leash length grows at sqrt of speed further out
+        // 皮带长度以更快的速度增长
         leash_length = (accel_cms / (2.0f*kP*kP)) + (speed_cms*speed_cms / (2.0f*accel_cms));
     }
 
@@ -1072,6 +1089,7 @@ void AC_PosControl::init_ekf_z_reset()
 void AC_PosControl::check_for_ekf_z_reset()
 {
     // check for position shift
+    // 检查位置移动
     float alt_shift;
     uint32_t reset_ms = _ahrs.getLastPosDownReset(alt_shift);
     if (reset_ms != _ekf_z_reset_ms) {

@@ -9,11 +9,13 @@ static uint32_t auto_disarm_begin;
 
 // arm_motors_check - checks for pilot input to arm or disarm the copter
 // called at 10hz
+//解锁检测
 void Copter::arm_motors_check()
 {
     static int16_t arming_counter;
 
     // ensure throttle is down
+    // 确保油门拉低
     if (channel_throttle->get_control_in() > 0) {
         arming_counter = 0;
         return;
@@ -22,30 +24,38 @@ void Copter::arm_motors_check()
     int16_t tmp = channel_yaw->get_control_in();
 
     // full right
+    //满右 - 上锁
     if (tmp > 4000) {
 
         // increase the arming counter to a maximum of 1 beyond the auto trim counter
+        //将解锁计数器增加到最大的1，超出自动微调计数器
         if( arming_counter <= AUTO_TRIM_DELAY ) {
             arming_counter++;
         }
 
         // arm the motors and configure for flight
+        // 解锁电机和为飞行做准备
         if (arming_counter == ARM_DELAY && !motors->armed()) {
             // reset arming counter if arming fail
+            // 如果解锁失败，复位计数器
             if (!init_arm_motors(false)) {
                 arming_counter = 0;
             }
         }
 
         // arm the motors and configure for flight
+        // 当模式为稳定模式时，超过10S，解锁电机和为飞行做准备
         if (arming_counter == AUTO_TRIM_DELAY && motors->armed() && control_mode == STABILIZE) {
             auto_trim_counter = 250;
             // ensure auto-disarm doesn't trigger immediately
+            //确保自动解除武装不会立即触发
             auto_disarm_begin = millis();
         }
 
     // full left
+    // 满左 - 上锁
     }else if (tmp < -4000) {
+    	//不是自稳和ACRO模式并且没有触地，不允许上锁
         if (!mode_has_manual_throttle(control_mode) && !ap.land_complete) {
             arming_counter = 0;
             return;
@@ -57,11 +67,13 @@ void Copter::arm_motors_check()
         }
 
         // disarm the motors
+        // 触地并且大于2秒，上锁
         if (arming_counter == DISARM_DELAY && motors->armed()) {
             init_disarm_motors();
         }
 
     // Yaw is centered so reset arming counter
+    // 如果偏航居中，复位解锁计数器
     }else{
         arming_counter = 0;
     }
@@ -282,20 +294,25 @@ void Copter::motors_output()
 #endif
 
     // Update arming delay state
+    // 更新解锁延时状态
     if (ap.in_arming_delay && (!motors->armed() || millis()-arm_time_ms > ARMING_DELAY_SEC*1.0e3f || control_mode == THROW)) {
         ap.in_arming_delay = false;
     }
 
     // output any servo channels
+    // 输出到任何伺服通道
     SRV_Channels::calc_pwm();
 
     // cork now, so that all channel outputs happen at once
+    //软木塞，所有通道输出同时发生
     hal.rcout->cork();
     
     // update output on any aux channels, for manual passthru
+    //更新任何一个频道的输出，以供手动通过。
     SRV_Channels::output_ch_all();
     
     // check if we are performing the motor test
+    // 检查是否执行电机测试
     if (ap.motor_test) {
         motor_test_output();
     } else {
@@ -309,10 +326,12 @@ void Copter::motors_output()
         }
 
         // send output signals to motors
+        // 发送输出信号到电机
         motors->output();
     }
 
     // push all channels
+    // 推送所有通道
     hal.rcout->push();
 }
 

@@ -10,13 +10,16 @@ bool Copter::loiter_init(bool ignore_checks)
     if (position_ok() || ignore_checks) {
 
         // set target to current position
+        // 设置当前目标位置
         wp_nav->init_loiter_target();
 
         // initialize vertical speed and acceleration
+        // 初始化车辆得速度和加速度
         pos_control->set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
         pos_control->set_accel_z(g.pilot_accel_z);
 
         // initialise position and desired velocity
+        // 初始化位置和目前速度
         if (!pos_control->is_active_z()) {
             pos_control->set_alt_target_to_current_alt();
             pos_control->set_desired_velocity_z(inertial_nav.get_velocity_z());
@@ -74,41 +77,51 @@ void Copter::loiter_run()
     float takeoff_climb_rate = 0.0f;
 
     // initialize vertical speed and acceleration
+    // 初始化垂直速度和加速度
     pos_control->set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     pos_control->set_accel_z(g.pilot_accel_z);
 
     // process pilot inputs unless we are in radio failsafe
+    // 处理遥控输入，除非我们正处在失联保护
     if (!failsafe.radio) {
         // apply SIMPLE mode transform to pilot inputs
+        // 应用简单模式变换到遥控输入
         update_simple_mode();
 
         // process pilot's roll and pitch input
+        // 处理飞手的RP输入
         wp_nav->set_pilot_desired_acceleration(channel_roll->get_control_in(), channel_pitch->get_control_in());
 
         // get pilot's desired yaw rate
+        // 获取期望航向速率
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
 
         // get pilot desired climb rate
+        // 获取期望爬升速率
         target_climb_rate = get_pilot_desired_climb_rate(channel_throttle->get_control_in());
         target_climb_rate = constrain_float(target_climb_rate, -g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     } else {
         // clear out pilot desired acceleration in case radio failsafe event occurs and we do not switch to RTL for some reason
+        //清除期望加速度，如果出现失联保护事件和出于某种原因没有切换的RTL模式
         wp_nav->clear_pilot_desired_acceleration();
     }
 
     // relax loiter target if we might be landed
+    // 如果飞机在地上的话，放松留待的目标值
     if (ap.land_complete_maybe) {
         wp_nav->loiter_soften_for_landing();
     }
 
 #if FRAME_CONFIG == HELI_FRAME
     // helicopters are held on the ground until rotor speed runup has finished
+    //直升飞机在地面上保持，直到转子速度运行完成。
     bool takeoff_triggered = (ap.land_complete && (target_climb_rate > 0.0f) && motors->rotor_runup_complete());
 #else
     bool takeoff_triggered = ap.land_complete && (target_climb_rate > 0.0f);
 #endif
 
     // Loiter State Machine Determination
+    // 留待状态机
     if (!motors->armed() || !motors->get_interlock()) {
         loiter_state = Loiter_MotorStopped;
     } else if (takeoff_state.running || takeoff_triggered) {
@@ -127,12 +140,15 @@ void Copter::loiter_run()
         motors->set_desired_spool_state(AP_Motors::DESIRED_SHUT_DOWN);
 #if FRAME_CONFIG == HELI_FRAME
         // force descent rate and call position controller
+        // 强制下降速率、调用位置控制器
         pos_control->set_alt_target_from_climb_rate(-abs(g.land_speed), G_Dt, false);
 #else
         wp_nav->init_loiter_target();
         attitude_control->reset_rate_controller_I_terms();
         attitude_control->set_yaw_target_to_current_heading();
-        pos_control->relax_alt_hold_controllers(0.0f);   // forces throttle output to go to zero
+		// forces throttle output to go to zero
+		//强制油门输出为0
+        pos_control->relax_alt_hold_controllers(0.0f);   
 #endif
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
@@ -141,30 +157,39 @@ void Copter::loiter_run()
 
     case Loiter_Takeoff:
         // set motors to full range
+        // 设置电机到满量程输出
         motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
         // initiate take-off
+        // 开始起飞
         if (!takeoff_state.running) {
             takeoff_timer_start(constrain_float(g.pilot_takeoff_alt,0.0f,1000.0f));
             // indicate we are taking off
+            // 表面我们在起飞
             set_land_complete(false);
             // clear i term when we're taking off
+            // 起飞的时候清除积分项
             set_throttle_takeoff();
         }
 
         // get takeoff adjusted pilot and takeoff climb rates
+        // 获取起飞调整后的爬升速率
         takeoff_get_climb_rates(target_climb_rate, takeoff_climb_rate);
 
         // get avoidance adjusted climb rate
+        // 壁障爬上速率
         target_climb_rate = get_avoidance_adjusted_climbrate(target_climb_rate);
 
         // run loiter controller
+        // 运行留待控制器
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
         // call attitude controller
+        // 姿态控制器
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
 
         // update altitude target and call position controller
+        // 更新高度目标和调用高度控制器
         pos_control->set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, false);
         pos_control->add_takeoff_climb_rate(takeoff_climb_rate, G_Dt);
         pos_control->update_z_controller();
@@ -172,7 +197,8 @@ void Copter::loiter_run()
 
     case Loiter_Landed:
         // set motors to spin-when-armed if throttle below deadzone, otherwise full range (but motors will only spin at min throttle)
-        if (target_climb_rate < 0.0f) {
+		//设置马达在无风带的情况下自动旋转，否则全范围（但马达只会在最小油门上旋转）
+		if (target_climb_rate < 0.0f) {
             motors->set_desired_spool_state(AP_Motors::DESIRED_SPIN_WHEN_ARMED);
         } else {
             motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
@@ -188,6 +214,7 @@ void Copter::loiter_run()
     case Loiter_Flying:
 
         // set motors to full range
+        // 设置电机到满量程
         motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
 #if PRECISION_LANDING == ENABLED
@@ -197,21 +224,27 @@ void Copter::loiter_run()
 #endif
 
         // run loiter controller
+        // 运行留待控制器
         wp_nav->update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
         // call attitude controller
+        // 调用姿态控制器
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(wp_nav->get_roll(), wp_nav->get_pitch(), target_yaw_rate, get_smoothing_gain());
 
         // adjust climb rate using rangefinder
+        // 如果有超声定高，调整爬升速率
         if (rangefinder_alt_ok()) {
             // if rangefinder is ok, use surface tracking
+            // 如果超声正常，使用表面跟踪
             target_climb_rate = get_surface_tracking_climb_rate(target_climb_rate, pos_control->get_alt_target(), G_Dt);
         }
 
         // get avoidance adjusted climb rate
+        // 获取壁障调整的爬升速率
         target_climb_rate = get_avoidance_adjusted_climbrate(target_climb_rate);
 
         // update altitude target and call position controller
+        //更新高度目标、调用高度控制器
         pos_control->set_alt_target_from_climb_rate_ff(target_climb_rate, G_Dt, false);
         pos_control->update_z_controller();
         break;

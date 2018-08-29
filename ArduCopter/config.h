@@ -639,6 +639,7 @@
 //
 
 // use this to completely disable the CLI
+//使用这个来完全禁用CLI
 #ifndef CLI_ENABLED
   #  define CLI_ENABLED           ENABLED
 #endif

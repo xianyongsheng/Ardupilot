@@ -88,9 +88,11 @@ GCS_MAVLINK::setup_uart(const AP_SerialManager& serial_manager, AP_SerialManager
     }
 
     // get associated mavlink channel
+    //获得相关的mavlink频道
     mavlink_channel_t mav_chan;
     if (!serial_manager.get_mavlink_channel(protocol, instance, mav_chan)) {
         // return immediately in unlikely case mavlink channel cannot be found
+        //在不太可能的情况下立即返回，无法找到mavlink频道。
         return;
     }
 
@@ -102,6 +104,17 @@ GCS_MAVLINK::setup_uart(const AP_SerialManager& serial_manager, AP_SerialManager
       0x20 at 115200 on startup, which tells the bootloader to reset
       and boot normally
      */
+	/*
+		现在试着处理可能被困在引导加载器中的植入式收音机
+		因为CTS是在充电的时候被控制的。
+		这告诉
+		引导加载程序等待固件。
+		它会影响到任何的
+		CTS连接的是外部电源。
+		要处理我们发送0x30
+		0x20在启动时的115200，它告诉引导装载程序重新设置
+		和正常启动了
+	*/     
     uart->begin(115200);
     AP_HAL::UARTDriver::flow_control old_flow_control = uart->get_flow_control();
     uart->set_flow_control(AP_HAL::UARTDriver::FLOW_CONTROL_DISABLE);
@@ -116,6 +129,7 @@ GCS_MAVLINK::setup_uart(const AP_SerialManager& serial_manager, AP_SerialManager
     uart->set_flow_control(old_flow_control);
 
     // now change back to desired baudrate
+    //现在换回所需的波特酸盐
     uart->begin(serial_manager.find_baudrate(protocol, instance));
 
     // and init the gcs instance
@@ -799,6 +813,7 @@ GCS_MAVLINK::update(run_cli_fn run_cli, uint32_t max_time_us)
 
         if (parsed_packet || i % 100 == 0) {
             // make sure we don't spend too much time parsing mavlink messages
+            //确保我们不会花太多时间解析mavlink消息
             if (AP_HAL::micros() - tstart_us > max_time_us) {
                 break;
             }

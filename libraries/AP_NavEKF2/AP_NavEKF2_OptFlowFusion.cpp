@@ -78,21 +78,30 @@ void NavEKF2_core::SelectFlowFusion()
 Estimation of terrain offset using a single state EKF
 The filter can fuse motion compensated optiocal flow rates and range finder measurements
 */
+/*
+	使用单一状态EKF对地形偏移的估计
+	这个过滤器可以融合运动补偿的光场流量和测距仪测量
+*/
 void NavEKF2_core::EstimateTerrainOffset()
 {
     // start performance timer
     hal.util->perf_begin(_perf_TerrainOffset);
 
     // constrain height above ground to be above range measured on ground
+    //限制地面上的高度，以高于地面测量的范围。
     float heightAboveGndEst = MAX((terrainState - stateStruct.position.z), rngOnGnd);
 
     // calculate a predicted LOS rate squared
+    //计算预测的LOS速率平方
     float velHorizSq = sq(stateStruct.velocity.x) + sq(stateStruct.velocity.y);
     float losRateSq = velHorizSq / sq(heightAboveGndEst);
 
     // don't update terrain offset state if there is no range finder
     // don't update terrain state if not generating enough LOS rate, or without GPS, as it is poorly observable
     // don't update terrain state if we are using it as a height reference in the main filter
+    //如果没有测距仪，不要更新地形补偿状态
+	//不要更新地形状态，如果没有产生足够的LOS率，或者没有GPS，因为它的可观察性很差。
+	//不要更新地形状态如果我们在主过滤器中使用它作为高度引用
     bool cantFuseFlowData = (gpsNotAvailable || PV_AidingMode == AID_RELATIVE || velHorizSq < 25.0f || losRateSq < 0.01f);
     if ((!rangeDataToFuse && cantFuseFlowData) || (activeHgtSource == HGT_SOURCE_RNG)) {
         // skip update
@@ -260,6 +269,13 @@ void NavEKF2_core::EstimateTerrainOffset()
  * https://github.com/priseborough/InertialNav/blob/master/derivations/RotationVectorAttitudeParameterisation/GenerateNavFilterEquations.m
  * Requires a valid terrain height estimate.
 */
+/*
+	摘要利用Matlab符号工具箱生成的显式代数方程，融合了角运动补偿光流率。
+	在这个过滤器中用来生成这些和其他等式的脚本文件可以在这里找到：
+	* https://github.com/priseborough/InertialNav/blob/master/derivations/RotationVectorAttitudeParameterisation/GenerateNavFilterEquations.m
+	需要一个有效的地形高度估计。
+*/
+
 void NavEKF2_core::FuseOptFlow()
 {
     Vector24 H_LOS;
@@ -268,6 +284,7 @@ void NavEKF2_core::FuseOptFlow()
     Vector2 losPred;
 
     // Copy required states to local variable names
+    //拷贝要求的状态到本地变量名
     float q0  = stateStruct.quat[0];
     float q1 = stateStruct.quat[1];
     float q2 = stateStruct.quat[2];
@@ -278,10 +295,12 @@ void NavEKF2_core::FuseOptFlow()
     float pd = stateStruct.position.z;
 
     // constrain height above ground to be above range measured on ground
+    //限制地面上的高度，以高于地面测量的范围。
     float heightAboveGndEst = MAX((terrainState - pd), rngOnGnd);
     float ptd = pd + heightAboveGndEst;
 
     // Calculate common expressions for observation jacobians
+    //计算观察jacobians的常见表达式
     SH_LOS[0] = sq(q0) - sq(q1) - sq(q2) + sq(q3);
     SH_LOS[1] = vn*(sq(q0) + sq(q1) - sq(q2) - sq(q3)) - vd*(2*q0*q2 - 2*q1*q3) + ve*(2*q0*q3 + 2*q1*q2);
     SH_LOS[2] = ve*(sq(q0) - sq(q1) + sq(q2) - sq(q3)) + vd*(2*q0*q1 + 2*q2*q3) - vn*(2*q0*q3 - 2*q1*q2);
@@ -298,13 +317,18 @@ void NavEKF2_core::FuseOptFlow()
     SH_LOS[13] = 1.0f/(SH_LOS[12]*SH_LOS[12]);
 
     // Fuse X and Y axis measurements sequentially assuming observation errors are uncorrelated
+    //融合X和Y轴的测量顺序 假设观测误差是不相关的
     for (uint8_t obsIndex=0; obsIndex<=1; obsIndex++) { // fuse X axis data first
         // calculate range from ground plain to centre of sensor fov assuming flat earth
+        //计算从地面平原到传感器fov的中心，假设平坦地球
         float range = constrain_float((heightAboveGndEst/prevTnb.c.z),rngOnGnd,1000.0f);
 
         // correct range for flow sensor offset body frame position offset
         // the corrected value is the predicted range from the sensor focal point to the
         // centre of the image on the ground assuming flat terrain
+        //正确的流量传感器偏移量体框架位置偏移
+		//修正后的值是指从传感器焦点到
+		//地面上的图像中心假设平坦地形
         Vector3f posOffsetBody = (*ofDataDelayed.body_offset) - accelPosOffset;
         if (!posOffsetBody.is_zero()) {
             Vector3f posOffsetEarth = prevTnb.mul_transpose(posOffsetBody);
@@ -312,13 +336,16 @@ void NavEKF2_core::FuseOptFlow()
         }
 
         // calculate relative velocity in sensor frame including the relative motion due to rotation
+        //计算传感器框架的相对速度，包括旋转引起的相对运动
         relVelSensor = prevTnb*stateStruct.velocity + ofDataDelayed.bodyRadXYZ % posOffsetBody;
 
         // divide velocity by range  to get predicted angular LOS rates relative to X and Y axes
+        //将速度除以距离以得到预测的角速度相对于X和Y轴
         losPred[0] =  relVelSensor.y/range;
         losPred[1] = -relVelSensor.x/range;
 
         // calculate observation jacobians and Kalman gains
+        // 计算观测jacobians和卡尔曼增益
         memset(&H_LOS[0], 0, sizeof(H_LOS));
         if (obsIndex == 0) {
             H_LOS[0] = SH_LOS[3]*SH_LOS[2]*SH_LOS[6]-SH_LOS[3]*SH_LOS[0]*SH_LOS[4];
@@ -422,6 +449,7 @@ void NavEKF2_core::FuseOptFlow()
             float t62 = 1.0f/t61;
 
             // calculate innovation variance for X axis observation and protect against a badly conditioned calculation
+            //计算X轴观测的创新方差，并防止条件差的计算
             if (t61 > R_LOS) {
                 t62 = 1.0f/t61;
                 faultStatus.bad_yflow = false;
@@ -434,9 +462,11 @@ void NavEKF2_core::FuseOptFlow()
             varInnovOptFlow[0] = t61;
 
             // calculate innovation for X axis observation
+            //对X轴的观测量计算创新
             innovOptFlow[0] = losPred[0] - ofDataDelayed.flowRadXYcomp.x;
 
             // calculate Kalman gains for X-axis observation
+            //计算X轴卡尔曼增益
             Kfusion[0] = t62*(-P[0][0]*t8-P[0][5]*t100+P[0][3]*t101+P[0][1]*t102+P[0][2]*t103+P[0][8]*t104-P[0][4]*t105);
             Kfusion[1] = t62*(t22-P[1][0]*t8-P[1][5]*t100+P[1][3]*t101+P[1][2]*t103+P[1][8]*t104-P[1][4]*t105);
             Kfusion[2] = t62*(t48-P[2][0]*t8-P[2][5]*t100+P[2][3]*t101+P[2][1]*t102+P[2][8]*t104-P[2][4]*t105);
@@ -576,6 +606,7 @@ void NavEKF2_core::FuseOptFlow()
             float t62 = 1.0f/t61;
 
             // calculate innovation variance for X axis observation and protect against a badly conditioned calculation
+            //计算X轴观测的创新方差，并防止条件差的计算
             if (t61 > R_LOS) {
                 t62 = 1.0f/t61;
                 faultStatus.bad_yflow = false;
@@ -629,9 +660,11 @@ void NavEKF2_core::FuseOptFlow()
         }
 
         // calculate the innovation consistency test ratio
+        //计算创新一致性测试比率
         flowTestRatio[obsIndex] = sq(innovOptFlow[obsIndex]) / (sq(MAX(0.01f * (float)frontend->_flowInnovGate, 1.0f)) * varInnovOptFlow[obsIndex]);
 
         // Check the innovation for consistency and don't fuse if out of bounds or flow is too fast to be reliable
+        //检查创新是否一致，如果超出界限或流量太快，不可靠，就不会融合。
         if ((flowTestRatio[obsIndex]) < 1.0f && (ofDataDelayed.flowRadXY.x < frontend->_maxFlowRate) && (ofDataDelayed.flowRadXY.y < frontend->_maxFlowRate)) {
             // record the last time observations were accepted for fusion
             prevFlowFuseTime_ms = imuSampleTime_ms;
@@ -666,6 +699,7 @@ void NavEKF2_core::FuseOptFlow()
             }
 
             // Check that we are not going to drive any variances negative and skip the update if so
+            //检查我们不会将任何方差都推到负值，如果有的话，跳过更新
             bool healthyFusion = true;
             for (uint8_t i= 0; i<=stateIndexLim; i++) {
                 if (KHP[i][i] > P[i][i]) {
@@ -689,12 +723,15 @@ void NavEKF2_core::FuseOptFlow()
                 stateStruct.angErr.zero();
 
                 // correct the state vector
+                // 修正状态矢量
                 for (uint8_t j= 0; j<=stateIndexLim; j++) {
                     statesArray[j] = statesArray[j] - Kfusion[j] * innovOptFlow[obsIndex];
                 }
 
                 // the first 3 states represent the angular misalignment vector. This is
                 // is used to correct the estimated quaternion on the current time step
+                //前3个状态代表了角位移矢量。
+				//这是用于纠正当前时间步骤的估计四元数
                 stateStruct.quat.rotate(stateStruct.angErr);
 
             } else {

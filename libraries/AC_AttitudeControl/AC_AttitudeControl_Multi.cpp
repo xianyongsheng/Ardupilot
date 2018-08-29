@@ -253,7 +253,8 @@ void AC_AttitudeControl_Multi::update_throttle_rpy_mix()
 void AC_AttitudeControl_Multi::rate_controller_run()
 {
     // move throttle vs attitude mixing towards desired (called from here because this is conveniently called on every iteration)
-    update_throttle_rpy_mix();
+	//移动油门和对期望的姿态混合（从这里调用，因为这在每次迭代中都很方便地调用）
+	update_throttle_rpy_mix();
 
     Vector3f gyro_latest = _ahrs.get_gyro_latest();
     _motors.set_roll(rate_target_to_motor_roll(gyro_latest.x, _rate_target_ang_vel.x));
