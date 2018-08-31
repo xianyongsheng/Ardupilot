@@ -57,15 +57,20 @@ AP_AHRS_DCM::update(bool skip_ins_update)
 
     if (!skip_ins_update) {
         // tell the IMU to grab some data
+        // 告诉IMU去抓取一些数据
         _ins.update();
     }
 
     // ask the IMU how much time this sensor reading represents
+    //问IMU这个传感器读数代表了多少时间
     delta_t = _ins.get_delta_time();
 
     // if the update call took more than 0.2 seconds then discard it,
     // otherwise we may move too far. This happens when arming motors
     // in ArduCopter
+    //如果更新调用超过0。2秒，然后丢弃它，
+	//否则我们可能走得太远。
+	//这是在武装马达时发生的在ArduCopter
     if (delta_t > 0.2f) {
         memset(&_ra_sum[0], 0, sizeof(_ra_sum));
         _ra_deltat = 0;
@@ -73,24 +78,30 @@ AP_AHRS_DCM::update(bool skip_ins_update)
     }
 
     // Integrate the DCM matrix using gyro inputs
+    // 使用陀螺仪输入 积分DCM矩阵
     matrix_update(delta_t);
 
     // Normalize the DCM matrix
+    // 归一化DCM矩阵
     normalize();
 
     // Perform drift correction
+    // 执行漂移修正
     drift_correction(delta_t);
 
     // paranoid check for bad values in the DCM matrix
+    // 偏执检查坏值在DCM矩阵
     check_matrix();
 
     // Calculate pitch, roll, yaw for stabilization and navigation
+    // 计算rpy
     euler_angles();
 
     // update trig values including _cos_roll, cos_pitch
     update_trig();
 
     // update AOA and SSA
+    // 更新AOA和SSA
     update_AOA_SSA();
 }
 

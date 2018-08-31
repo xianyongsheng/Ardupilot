@@ -171,6 +171,7 @@ void Copter::failsafe_ekf_off_event(void)
 void Copter::check_ekf_reset()
 {
     // check for yaw reset
+    // 检查偏航复位
     float yaw_angle_change_rad = 0.0f;
     uint32_t new_ekfYawReset_ms = ahrs.getLastYawResetAngle(yaw_angle_change_rad);
     if (new_ekfYawReset_ms != ekfYawReset_ms) {
@@ -181,6 +182,7 @@ void Copter::check_ekf_reset()
 
 #if AP_AHRS_NAVEKF_AVAILABLE
     // check for change in primary EKF (log only, AC_WPNav handles position target adjustment)
+    // 检查EKF源的改变
     if ((EKF2.getPrimaryCoreIndex() != ekf_primary_core) && (EKF2.getPrimaryCoreIndex() != -1)) {
         ekf_primary_core = EKF2.getPrimaryCoreIndex();
         Log_Write_Error(ERROR_SUBSYSTEM_EKF_PRIMARY, ekf_primary_core);

@@ -12,6 +12,7 @@ void Copter::update_ground_effect_detector(void)
     }
 
     // variable initialization
+    // 变量初始化
     uint32_t tnow_ms = millis();
     float xy_des_speed_cms = 0.0f;
     float xy_speed_cms = 0.0f;
@@ -30,13 +31,16 @@ void Copter::update_ground_effect_detector(void)
     }
 
     // takeoff logic
+    // 起飞逻辑
 
     // if we are armed and haven't yet taken off
+    // 如果我们处在解锁和还没起飞
     if (motors->armed() && ap.land_complete && !gndeffect_state.takeoff_expected) {
         gndeffect_state.takeoff_expected = true;
     }
 
     // if we aren't taking off yet, reset the takeoff timer, altitude and complete flag
+    //如果我们还没有起飞，重置起飞计时器，高度和全旗
     bool throttle_up = mode_has_manual_throttle(control_mode) && channel_throttle->get_control_in() > 0;
     if (!throttle_up && ap.land_complete) {
         gndeffect_state.takeoff_time_ms = tnow_ms;
@@ -45,11 +49,13 @@ void Copter::update_ground_effect_detector(void)
 
     // if we are in takeoff_expected and we meet the conditions for having taken off
     // end the takeoff_expected state
+    //如果我们在预期的情况下，我们将满足起飞的条件，取消预定的状态
     if (gndeffect_state.takeoff_expected && (tnow_ms-gndeffect_state.takeoff_time_ms > 5000 || inertial_nav.get_altitude()-gndeffect_state.takeoff_alt_cm > 50.0f)) {
         gndeffect_state.takeoff_expected = false;
     }
 
     // landing logic
+    // 降落逻辑
     Vector3f angle_target_rad = attitude_control->get_att_target_euler_cd() * radians(0.01f);
     bool small_angle_request = cosf(angle_target_rad.x)*cosf(angle_target_rad.y) > cosf(radians(7.5f));
     bool xy_speed_low = (position_ok() || optflow_position_ok()) && xy_speed_cms <= 125.0f;
@@ -64,6 +70,7 @@ void Copter::update_ground_effect_detector(void)
     gndeffect_state.touchdown_expected = slow_horizontal && slow_descent;
 
     // Prepare the EKF for ground effect if either takeoff or touchdown is expected.
+    // 为地面效果准备好，如果预计起飞或着陆。
     ahrs.setTakeoffExpected(gndeffect_state.takeoff_expected);
     ahrs.setTouchdownExpected(gndeffect_state.touchdown_expected);
 }

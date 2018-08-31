@@ -287,6 +287,9 @@ void Copter::motors_output()
     // this is to allow the failsafe module to deliberately crash 
     // the vehicle. Only used in extreme circumstances to meet the
     // OBC rules
+    // 这是为了让故障安全模块故意崩溃车辆。
+	// 只有在极端情况下才会遇到
+	// OBC规则
     if (g2.afs.should_crash_vehicle()) {
         g2.afs.terminate_vehicle();
         return;

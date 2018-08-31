@@ -360,15 +360,18 @@ void AP_AHRS::update_AOA_SSA(void)
     aoa_wind = wind_estimate();
 
     // Rotate vectors to the body frame and calculate velocity and wind
+    // 旋转矢量到机体坐标系、计算速度和风
     const Matrix3f &rot = get_rotation_body_to_ned();
     aoa_velocity = rot.mul_transpose(aoa_velocity);
     aoa_wind = rot.mul_transpose(aoa_wind);
 
     // calculate relative velocity in body coordinates
+    // 计算相对速度到机体坐标系
     aoa_velocity = aoa_velocity - aoa_wind;
     float vel_len = aoa_velocity.length();
 
     // do not calculate if speed is too low
+    // 速度太慢时，不计算
     if (vel_len < 2.0) {
         _AOA = 0;
         _SSA = 0;

@@ -40,8 +40,10 @@ bool Copter::guided_init(bool ignore_checks)
 {
     if (position_ok() || ignore_checks) {
         // initialise yaw
+        //初始化偏航
         set_auto_yaw_mode(get_default_auto_yaw_mode(false));
         // start in position control mode
+        // 开始位置控制模式
         guided_pos_control_start();
         return true;
     }else{
@@ -56,6 +58,7 @@ bool Copter::guided_takeoff_start(float final_alt_above_home)
     guided_mode = Guided_TakeOff;
 
     // initialise wpnav destination
+    // 初始化航点
     Location_Class target_loc = current_loc;
     target_loc.set_alt_cm(final_alt_above_home, Location_Class::ALT_FRAME_ABOVE_HOME);
 
@@ -67,12 +70,15 @@ bool Copter::guided_takeoff_start(float final_alt_above_home)
     }
 
     // initialise yaw
+    // 初始化偏航
     set_auto_yaw_mode(AUTO_YAW_HOLD);
 
     // clear i term when we're taking off
+    // 当我们已经起飞，清除积分项
     set_throttle_takeoff();
 
     // get initial alt for WP_NAVALT_MIN
+    // 获取初始化高度
     auto_takeoff_set_start_alt();
     
     return true;
@@ -82,19 +88,24 @@ bool Copter::guided_takeoff_start(float final_alt_above_home)
 void Copter::guided_pos_control_start()
 {
     // set to position control mode
+    // 设置位置控制器
     guided_mode = Guided_WP;
 
     // initialise waypoint and spline controller
+    // 初始化航点和航线控制器
     wp_nav->wp_and_spline_init();
 
     // initialise wpnav to stopping point
+    // 初始化航线到终点
     Vector3f stopping_point;
     wp_nav->get_wp_stopping_point(stopping_point);
 
     // no need to check return status because terrain data is not used
+    // 不需要去检查返回状态，因为地形数据没有用
     wp_nav->set_wp_destination(stopping_point, false);
 
     // initialise yaw
+    // 初始化偏航
     set_auto_yaw_mode(get_default_auto_yaw_mode(false));
 }
 
@@ -102,18 +113,22 @@ void Copter::guided_pos_control_start()
 void Copter::guided_vel_control_start()
 {
     // set guided_mode to velocity controller
+    // 设置引导模式到速度控制器
     guided_mode = Guided_Velocity;
 
     // initialise horizontal speed, acceleration and jerk
+    // 初始化水平速度、加速度和jerk
     pos_control->set_speed_xy(wp_nav->get_speed_xy());
     pos_control->set_accel_xy(wp_nav->get_wp_acceleration());
     pos_control->set_jerk_xy_to_default();
 
     // initialize vertical speeds and acceleration
+    // 初始化垂直速度和加速度
     pos_control->set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     pos_control->set_accel_z(g.pilot_accel_z);
 
     // initialise velocity controller
+    // 初始化速度控制器
     pos_control->init_vel_controller_xyz();
 }
 
@@ -195,6 +210,7 @@ bool Copter::guided_set_destination(const Vector3f& destination, bool use_yaw, f
 #endif
 
     // set yaw state
+    // 设置偏航状态
     guided_set_yaw_state(use_yaw, yaw_cd, use_yaw_rate, yaw_rate_cds, relative_yaw);
 
     // no need to check return status because terrain data is not used
@@ -211,6 +227,7 @@ bool Copter::guided_set_destination(const Vector3f& destination, bool use_yaw, f
 bool Copter::guided_set_destination(const Location_Class& dest_loc, bool use_yaw, float yaw_cd, bool use_yaw_rate, float yaw_rate_cds, bool relative_yaw)
 {
     // ensure we are in position control mode
+    // 确保我们是在位置控制模式
     if (guided_mode != Guided_WP) {
         guided_pos_control_start();
     }
@@ -233,9 +250,11 @@ bool Copter::guided_set_destination(const Location_Class& dest_loc, bool use_yaw
     }
 
     // set yaw state
+    // 设置偏航状态
     guided_set_yaw_state(use_yaw, yaw_cd, use_yaw_rate, yaw_rate_cds, relative_yaw);
 
     // log target
+    // 日志目标
     Log_Write_GuidedTarget(guided_mode, Vector3f(dest_loc.lat, dest_loc.lng, dest_loc.alt),Vector3f());
     return true;
 }
@@ -349,16 +368,21 @@ void Copter::guided_run()
 void Copter::guided_takeoff_run()
 {
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
+    // 如果不是自动解锁或电机联锁，没有启动油门，立即退出。
     if (!motors->armed() || !ap.auto_armed || !motors->get_interlock()) {
         // initialise wpnav targets
+        // 初始化航向目标
         wp_nav->shift_wp_origin_to_current_pos();
 #if FRAME_CONFIG == HELI_FRAME  // Helicopters always stabilize roll/pitch/yaw
         // call attitude controller
+        // 姿态控制器
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(0, 0, 0, get_smoothing_gain());
         attitude_control->set_throttle_out(0,false,g.throttle_filt);
 #else   // multicopters do not stabilize roll/pitch/yaw when disarmed
+		// 多轴在上锁时不稳定 RPY
         motors->set_desired_spool_state(AP_Motors::DESIRED_SPIN_WHEN_ARMED);
         // reset attitude control targets
+        // 复位姿态控制目标
         attitude_control->set_throttle_out_unstabilized(0,true,g.throttle_filt);
 #endif
         // clear i term when we're taking off
@@ -367,9 +391,11 @@ void Copter::guided_takeoff_run()
     }
 
     // process pilot's yaw input
+    // 处理偏航输入
     float target_yaw_rate = 0;
     if (!failsafe.radio) {
         // get pilot's desired yaw rate
+        // 获取期望偏航速率
         target_yaw_rate = get_pilot_desired_yaw_rate(channel_yaw->get_control_in());
     }
 
@@ -386,15 +412,19 @@ void Copter::guided_takeoff_run()
 #endif
 
     // set motors to full range
+    // 设置电机到满量程
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
     // run waypoint controller
+    // 航线控制器
     failsafe_terrain_set_status(wp_nav->update_wpnav());
 
     // call z-axis position controller (wpnav should have already updated it's alt target)
+    // 垂直位置控制器
     pos_control->update_z_controller();
 
     // call attitude controller
+    // 姿态控制器
     auto_takeoff_attitude_run(target_yaw_rate);
 }
 
@@ -403,6 +433,7 @@ void Copter::guided_takeoff_run()
 void Copter::guided_pos_control_run()
 {
     // if not auto armed or motors not enabled set throttle to zero and exit immediately
+    // 如果不是自动解锁或电机联锁，没有启动油门，立即退出。
     if (!motors->armed() || !ap.auto_armed || !motors->get_interlock() || ap.land_complete) {
 #if FRAME_CONFIG == HELI_FRAME  // Helicopters always stabilize roll/pitch/yaw
         // call attitude controller
@@ -611,6 +642,7 @@ void Copter::guided_angle_control_run()
     }
 
     // constrain desired lean angles
+    // 限制期望倾斜角度
     float roll_in = guided_angle_state.roll_cd;
     float pitch_in = guided_angle_state.pitch_cd;
     float total_in = norm(roll_in, pitch_in);
@@ -622,6 +654,7 @@ void Copter::guided_angle_control_run()
     }
 
     // wrap yaw request
+    // 打包偏航需求
     float yaw_in = wrap_180_cd(guided_angle_state.yaw_cd);
     float yaw_rate_in = wrap_180_cd(guided_angle_state.yaw_rate_cds);
 
@@ -629,6 +662,7 @@ void Copter::guided_angle_control_run()
     float climb_rate_cms = constrain_float(guided_angle_state.climb_rate_cms, -fabsf(wp_nav->get_speed_down()), wp_nav->get_speed_up());
 
     // get avoidance adjusted climb rate
+    // 获取壁障调整高度爬升
     climb_rate_cms = get_avoidance_adjusted_climbrate(climb_rate_cms);
 
     // check for timeout - set lean angles and climb rate to zero if no updates received for 3 seconds
@@ -641,16 +675,19 @@ void Copter::guided_angle_control_run()
     }
 
     // set motors to full range
+    // 设置电机满量程
     motors->set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
     // call attitude controller
-    if (guided_angle_state.use_yaw_rate) {
+	// 姿态控制器
+	if (guided_angle_state.use_yaw_rate) {
         attitude_control->input_euler_angle_roll_pitch_euler_rate_yaw(roll_in, pitch_in, yaw_rate_in, get_smoothing_gain());
     } else {
         attitude_control->input_euler_angle_roll_pitch_yaw(roll_in, pitch_in, yaw_in, true, get_smoothing_gain());
     }
 
     // call position controller
+    // 位置控制器
     pos_control->set_alt_target_from_climb_rate_ff(climb_rate_cms, G_Dt, false);
     pos_control->update_z_controller();
 }

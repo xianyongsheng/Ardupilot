@@ -35,6 +35,39 @@
  *      i) increases stab P until the maximum angle becomes greater than 110% of the requested angle (20deg)
  *      j) decreases stab P by 25%
  *
+ *
+ *		初始化和运行自动调优飞行模式的调用
+*
+		说明:
+		1）设置一个飞行模式开关位置为AltHold。
+		2）设置Ch7选择或Ch8选择自动调优，允许您使用Ch7或Ch8开关打开自动调优。
+		3）确保ch7或ch8开关处于较低的位置。
+		4）等待一个平静的日子，去一个开阔的地方。
+		5）起飞，在舒适的高度将车辆放入阿尔泰斯模式。
+		6）将ch7/ch8开关设置为高位置以进行自动调优：
+		a）你会看到它在大约20度左右的时间里向左或向右转几分钟，然后它会不断地向前和向后。
+		b）在任何时候使用滚轴和俯仰杆来重新定位直升机，如果它离开了（它将在重新定位和测试之间使用原始的PID增益）。
+		当你释放这些棒的时候，它会继续自动调优。
+		c）在任何时候将ch7/ch8开关移到低位位置，以放弃自动调优并返回原点PIDs。
+		d）确保你的发射机上没有任何的修剪装置，或者自动调音可能没有信号表明这些棒是居中排列的。
+		7）当曲调完成时，车辆将会回到原来的PID增益。
+		8）将ch7/ch8转换为低位置，然后返回到高位置来测试调优PID增益。
+		9）用原来的PID增益将ch7/ch8转换为低位置。
+		10）如果你对自动调优的PID增益感到满意，请将ch7/ch8开关放在高位置，着陆和解除武装，以永久保存PIDs。
+		如果你不喜欢新的PIDS，将ch7/ch8转换为返回原始的pid。
+		当你解除武装时，这些收益是不会被挽救的。
+
+		在每次“twitch”上都做了些什么：
+		a）调用90 deg/sec速率请求
+		b）记录最大"前进"滚动率和反弹率
+		c）当直升机达到20度或1秒时，它就会达到水平
+		d）试着通过调整速率P来保持最大的旋转速度（90度/秒）
+		e）提高速率D，直到回弹率大于请求率的10%（90度/秒）
+		f）降低速率D，直到回弹率小于请求率的10%（90度/秒）
+		g）在最大旋转速率大于请求率（90度/秒）之前提高速率P。
+		h）在滚动或音调上调用20个deg角请求
+		i）增加stab P直到最大角度大于请求角的110%（20 deg）
+		j）将刀刺减少25%
  */
 
 #define AUTOTUNE_AXIS_BITMASK_ROLL            1
@@ -169,18 +202,23 @@ bool Copter::autotune_init(bool ignore_checks)
     switch (autotune_state.mode) {
         case AUTOTUNE_MODE_FAILED:
             // autotune has been run but failed so reset state to uninitialized
+            // 自动调参已经运行，但是失败，因此复位状态到未初始化
             autotune_state.mode = AUTOTUNE_MODE_UNINITIALISED;
             // no break to allow fall through to restart the tuning
 
         case AUTOTUNE_MODE_UNINITIALISED:
             // autotune has never been run
+            // 自动调参已经在运行
             success = autotune_start(false);
             if (success) {
                 // so store current gains as original gains
+                // 储存当前增益作为原始增益
                 autotune_backup_gains_and_initialise();
                 // advance mode to tuning
+                // 预调模式
                 autotune_state.mode = AUTOTUNE_MODE_TUNING;
                 // send message to ground station that we've started tuning
+                // 告诉地面站我们正在调参
                 autotune_update_gcs(AUTOTUNE_MESSAGE_STARTED);
             }
             break;

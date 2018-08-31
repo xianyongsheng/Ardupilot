@@ -120,6 +120,8 @@ void AP_AHRS_NavEKF::update_DCM(bool skip_ins_update)
     // we need to restore the old DCM attitude values as these are
     // used internally in DCM to calculate error values for gyro drift
     // correction
+    //我们需要恢复旧的DCM态度值，如下所示
+	//在DCM内部使用的用于计算陀螺漂移的误差值修正
     roll = _dcm_attitude.x;
     pitch = _dcm_attitude.y;
     yaw = _dcm_attitude.z;
@@ -128,6 +130,7 @@ void AP_AHRS_NavEKF::update_DCM(bool skip_ins_update)
     AP_AHRS_DCM::update(skip_ins_update);
 
     // keep DCM attitude available for get_secondary_attitude()
+    // 保存 DCM 姿态变量
     _dcm_attitude(roll, pitch, yaw);
 }
 

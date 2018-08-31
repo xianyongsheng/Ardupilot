@@ -266,7 +266,7 @@ void Copter::loop()
 void Copter::fast_loop()
 {
     // update INS immediately to get current gyro data populated
-    //立即更新，以获得当前的陀螺仪数据
+    // 立即更新，以获得当前的陀螺仪数据
     ins.update();
     
     // run low level rate controllers that only require IMU data
@@ -326,6 +326,7 @@ void Copter::rc_loop()
 {
     // Read radio and 3-position switch on radio
     // -----------------------------------------
+    //阅读无线电和收音机3位开关
     read_radio();
     read_control_switch();
 }
@@ -335,9 +336,11 @@ void Copter::rc_loop()
 void Copter::throttle_loop()
 {
     // update throttle_low_comp value (controls priority of throttle vs attitude control)
+    更新 throttle_low_comp 的值
     update_throttle_thr_mix();
 
     // check auto_armed status
+    // 检查auto_armed状态
     update_auto_armed();
 
 #if FRAME_CONFIG == HELI_FRAME
@@ -349,6 +352,7 @@ void Copter::throttle_loop()
 #endif
 
     // compensate for ground effect (if enabled)
+    // 补偿地面效应（如果使能）
     update_ground_effect_detector();
 }
 
@@ -381,13 +385,16 @@ void Copter::update_trigger(void)
 void Copter::update_batt_compass(void)
 {
     // read battery before compass because it may be used for motor interference compensation
+    // 在罗盘之前读取电池信息，因为这可能用于电机补偿干扰
     read_battery();
 
     if(g.compass_enabled) {
         // update compass with throttle value - used for compassmot
+        // 用油门值更新罗盘
         compass.set_throttle(motors->get_throttle());
         compass.read();
         // log compass information
+        // 日志罗盘信息
         if (should_log(MASK_LOG_COMPASS) && !ahrs.have_ekf_logging()) {
             DataFlash.Log_Write_Compass(compass);
         }
@@ -396,6 +403,7 @@ void Copter::update_batt_compass(void)
 
 // Full rate logging of attitude, rate and pid loops
 // should be run at 400hz
+//400HZ更新日志信息：姿态，速率，pid
 void Copter::fourhundred_hz_logging()
 {
     if (should_log(MASK_LOG_ATTITUDE_FAST)) {
@@ -408,6 +416,7 @@ void Copter::fourhundred_hz_logging()
 void Copter::ten_hz_logging_loop()
 {
     // log attitude data if we're not already logging at the higher rate
+    //日志姿态数据，如果我们没有更高速率的记录
     if (should_log(MASK_LOG_ATTITUDE_MED) && !should_log(MASK_LOG_ATTITUDE_FAST)) {
         Log_Write_Attitude();
         Log_Write_EKF_POS();
@@ -653,6 +662,7 @@ void Copter::read_AHRS(void)
 #endif
 
     // we tell AHRS to skip INS update as we have already done it in fast_loop()
+    // 我们会告诉AHRS去跳过INS更新，如果我们已经在fast_loop()完成
     ahrs.update(true);
 }
 

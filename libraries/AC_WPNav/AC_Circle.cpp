@@ -109,6 +109,7 @@ void AC_Circle::update()
     float dt = _pos_control.time_since_last_xy_update();
 
     // update circle position at poscontrol update rate
+    // 更新绕圈位置
     if (dt >= _pos_control.get_dt_xy()) {
 
         // double check dt is reasonable
@@ -117,6 +118,7 @@ void AC_Circle::update()
         }
 
         // ramp angular velocity to maximum
+        // 斜坡角速度最大值
         if (_angular_vel < _angular_vel_max) {
             _angular_vel += fabsf(_angular_accel) * dt;
             _angular_vel = MIN(_angular_vel, _angular_vel_max);
@@ -127,32 +129,39 @@ void AC_Circle::update()
         }
 
         // update the target angle and total angle traveled
+        //更新目标角和总角度
         float angle_change = _angular_vel * dt;
         _angle += angle_change;
         _angle = wrap_PI(_angle);
         _angle_total += angle_change;
 
         // if the circle_radius is zero we are doing panorama so no need to update loiter target
+        //如果圆形半径为0，我们就在做全景图，所以不需要更新loiter目标
         if (!is_zero(_radius)) {
             // calculate target position
+            // 计算目标位置
             Vector3f target;
             target.x = _center.x + _radius * cosf(-_angle);
             target.y = _center.y - _radius * sinf(-_angle);
             target.z = _pos_control.get_alt_target();
 
             // update position controller target
+            // 更新位置控制器目标
             _pos_control.set_xy_target(target.x, target.y);
 
             // heading is 180 deg from vehicles target position around circle
+            // 方位角是180度，从车辆的目标位置
             _yaw = wrap_PI(_angle-M_PI) * AC_CIRCLE_DEGX100;
         }else{
             // set target position to center
+            // 设置目标位置为中心
             Vector3f target;
             target.x = _center.x;
             target.y = _center.y;
             target.z = _pos_control.get_alt_target();
 
             // update position controller target
+            // 更新位置控制器目标
             _pos_control.set_xy_target(target.x, target.y);
 
             // heading is same as _angle but converted to centi-degrees
