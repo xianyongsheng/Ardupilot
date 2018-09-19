@@ -807,7 +807,7 @@ GCS_MAVLINK::update(run_cli_fn run_cli, uint32_t max_time_us)
     }
 
     if (!waypoint_receiving) {
-        hal.util->perf_end(_perf_update);    
+        hal.util->perf_end(_perf_update);
         return;
     }
 

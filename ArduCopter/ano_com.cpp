@@ -3,7 +3,7 @@
 
 static uint8_t ano_send_buff[50];
 
-#define ano_data_send(s,l)	if(hal.uartA->txspace()>=l)hal.uartA->write(s,l)
+#define ano_data_send(s,l)	hal.console->write(s,l)//if(hal.uartA->txspace()>=l)hal.uartA->write(s,l)
 
 #define ANO_SDATUS	0.0f,1.0f,2.0f,0,0,0
 

@@ -627,7 +627,7 @@ void NavEKF2_core::FuseOptFlow()
                 }
             }
         }
-        //Kfusion[5] = Kfusion[8] = Kfusion[15] = 0.0f;
+        Kfusion[5] = Kfusion[8] = 0.0f;
         // calculate the innovation consistency test ratio
         flowTestRatio[obsIndex] = sq(innovOptFlow[obsIndex]) / (sq(MAX(0.01f * (float)frontend->_flowInnovGate, 1.0f)) * varInnovOptFlow[obsIndex]);
 

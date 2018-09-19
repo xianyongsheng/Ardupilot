@@ -1803,6 +1803,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             yaw_rate_cds = ToDeg(packet.yaw_rate) * 100.0f;
         }
 test_yaw = wrap_360_cd(yaw_cd )/100;
+//copter.ano_send_user(0xf1,&test_yaw,1);
 
         if (!pos_ignore && !vel_ignore && acc_ignore) {
             copter.guided_set_destination_posvel(pos_ned, Vector3f(packet.vx * 100.0f, packet.vy * 100.0f, -packet.vz * 100.0f), !yaw_ignore, yaw_cd, !yaw_rate_ignore, yaw_rate_cds, yaw_relative);
