@@ -576,28 +576,40 @@ void NavEKF2_core::UpdateStrapdownEquationsNED()
     // the delta angle rotation quaternion and normalise
     // apply correction for earth's rotation rate
     // % * - and + operators have been overloaded
-    stateStruct.quat.rotate(delAngCorrected - prevTnb * earthRateNED*imuDataDelayed.delAngDT);
+	//通过从先前的态度旋转来更新四元数状态
+    // delta角度旋转四元数和标准化
+    //对地球的转速进行修正
+    //％* - 和+运算符已超载
+	stateStruct.quat.rotate(delAngCorrected - prevTnb * earthRateNED*imuDataDelayed.delAngDT);
     stateStruct.quat.normalize();
 
     // transform body delta velocities to delta velocities in the nav frame
     // use the nav frame from previous time step as the delta velocities
     // have been rotated into that frame
     // * and + operators have been overloaded
-    Vector3f delVelNav;  // delta velocity vector in earth axes
+	//将导体帧中的体三角速度转换为三角速度
+     //使用前一时间步的导航框作为delta速度
+     //已旋转到该帧中
+     // *和+运算符已经过载
+	Vector3f delVelNav;  // delta velocity vector in earth axes
     delVelNav  = prevTnb.mul_transpose(delVelCorrected);
     delVelNav.z += GRAVITY_MSS*imuDataDelayed.delVelDT;
 
     // calculate the body to nav cosine matrix
+    // 计算机体NAV余弦矩阵
     stateStruct.quat.inverse().rotation_matrix(prevTnb);
 
     // calculate the rate of change of velocity (used for launch detect and other functions)
+    //计算速度变化的速度（用于发射探测和其他功能）
     velDotNED = delVelNav / imuDataDelayed.delVelDT;
 
     // apply a first order lowpass filter
+    // 一级低通滤波器
     velDotNEDfilt = velDotNED * 0.05f + velDotNEDfilt * 0.95f;
 
     // calculate a magnitude of the filtered nav acceleration (required for GPS
     // variance estimation)
+    //计算过滤后的导航加速度的大小（GPS方差估计要求）
     accNavMag = velDotNEDfilt.length();
     accNavMagHoriz = norm(velDotNEDfilt.x , velDotNEDfilt.y);
 

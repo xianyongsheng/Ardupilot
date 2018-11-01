@@ -191,6 +191,7 @@ void Copter::init_ardupilot()
     ap.initialised_params = true;
 
     // initialise which outputs Servo and Relay events can use
+    //初始化哪个输出伺服和继电器事件可以使用
     ServoRelayEvents.set_channel_mask(~motors->get_motor_mask());
 
     relay.init();

@@ -22,6 +22,7 @@
 
 // create a rotation matrix given some euler angles
 // this is based on http://gentlenav.googlecode.com/files/EulerAngles.pdf
+//用一些欧拉角创建一个旋转矩阵
 template <typename T>
 void Matrix3<T>::from_euler(float roll, float pitch, float yaw)
 {
@@ -45,6 +46,7 @@ void Matrix3<T>::from_euler(float roll, float pitch, float yaw)
 
 // calculate euler angles from a rotation matrix
 // this is based on http://gentlenav.googlecode.com/files/EulerAngles.pdf
+// 旋转矩阵计算欧拉角
 template <typename T>
 void Matrix3<T>::to_euler(float *roll, float *pitch, float *yaw) const
 {
@@ -98,6 +100,8 @@ void Matrix3<T>::from_euler312(float roll, float pitch, float yaw)
 
 // apply an additional rotation from a body frame gyro vector
 // to a rotation matrix.
+//应用一个机体框架陀螺矢量的额外旋转
+//转到一个旋转矩阵。
 template <typename T>
 void Matrix3<T>::rotate(const Vector3<T> &g)
 {
@@ -140,6 +144,7 @@ Vector3<T> Matrix3<T>::operator *(const Vector3<T> &v) const
 }
 
 // multiplication by a vector, extracting only the xy components
+//乘以一个矢量，只提取xy分量
 template <typename T>
 Vector2<T> Matrix3<T>::mulXY(const Vector3<T> &v) const
 {
@@ -148,6 +153,7 @@ Vector2<T> Matrix3<T>::mulXY(const Vector3<T> &v) const
 }
 
 // multiplication of transpose by a vector
+//乘以一个矢量的转置
 template <typename T>
 Vector3<T> Matrix3<T>::mul_transpose(const Vector3<T> &v) const
 {
@@ -231,6 +237,7 @@ void Matrix3<T>::zero(void)
 
 // create rotation matrix for rotation about the vector v by angle theta
 // See: http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToMatrix/
+//创建旋转矩阵，旋转矢量v的角度
 template <typename T>
 void Matrix3<T>::from_axis_angle(const Vector3<T> &v, float theta)
 {

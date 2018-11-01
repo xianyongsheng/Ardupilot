@@ -17,6 +17,9 @@ ByteBuffer::~ByteBuffer(void)
 /*
  * Caller is responsible for locking in set_size()
  */
+/*
+*调用方负责锁定set_size()
+*/
 bool ByteBuffer::set_size(uint32_t _size)
 {
     head = tail = 0;
@@ -95,6 +98,11 @@ uint32_t ByteBuffer::write(const uint8_t *data, uint32_t len)
   update bytes at the read pointer. Used to update an object without
   popping it
  */
+/*
+	在读取指针上更新字节。
+	用来更新对象
+	出现这
+*/
 bool ByteBuffer::update(const uint8_t *data, uint32_t len)
 {
     if (len > available()) {

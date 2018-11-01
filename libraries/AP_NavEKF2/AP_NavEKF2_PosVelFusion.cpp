@@ -600,7 +600,7 @@ void NavEKF2_core::FuseVelPosNED()
                 }
 
                 // if timed out, reset the height
-                // 超市复位高度
+                // 超时复位高度
                 if (hgtTimeout) {
                     ResetHeight();
                 }
@@ -847,6 +847,12 @@ void NavEKF2_core::selectHeightForFusion()
              * hysteresis to avoid rapid switching. Using range finder for height requires a consistent terrain height
              * which cannot be assumed if the vehicle is moving horizontally.
             */
+            /*
+				在测距仪和主高度源之间切换，使用地面以上的高度和速度阈值
+				滞后性以避免快速切换。
+				使用测距仪来达到高度需要一个一致的地形高度
+				如果飞行器在水平方向移动，这是不可能的。
+			*/
             if ((aboveUpperSwHgt || dontTrustTerrain) && (activeHgtSource == HGT_SOURCE_RNG)) {
                 // cannot trust terrain or range finder so stop using range finder height
                 if (frontend->_altSource == 0) {
@@ -856,6 +862,7 @@ void NavEKF2_core::selectHeightForFusion()
                 }
             } else if (belowLowerSwHgt && trustTerrain && (activeHgtSource != HGT_SOURCE_RNG)) {
                 // reliable terrain and range finder so start using range finder height
+                // 可靠的地形和测距仪，所以开始使用测距仪高度
                 activeHgtSource = HGT_SOURCE_RNG;
             }
         }
@@ -868,6 +875,7 @@ void NavEKF2_core::selectHeightForFusion()
     }
 
     // Use Baro alt as a fallback if we lose range finder or GPS
+    //使用Baro alt作为后备，如果我们失去了测距仪或GPS
     bool lostRngHgt = ((activeHgtSource == HGT_SOURCE_RNG) && ((imuSampleTime_ms - rngValidMeaTime_ms) > 500));
     bool lostGpsHgt = ((activeHgtSource == HGT_SOURCE_GPS) && ((imuSampleTime_ms - lastTimeGpsReceived_ms) > 2000));
     if (lostRngHgt || lostGpsHgt) {
@@ -884,7 +892,7 @@ void NavEKF2_core::selectHeightForFusion()
         }
         // filtered baro data used to provide a reference for takeoff
         // it is is reset to last height measurement on disarming in performArmingChecks()
-        //过滤后的baro数据，用于为起飞提供参考。
+        //滤波后的baro数据，用于为起飞提供参考。
 		//在穿孔检查（）中，它被重置为最后的高度测量（）
         if (!getTakeoffExpected()) {
             const float gndHgtFiltTC = 0.5f;
@@ -895,27 +903,36 @@ void NavEKF2_core::selectHeightForFusion()
     }
 
     // calculate offset to GPS height data that enables us to switch to GPS height during operation
+    //计算GPS高度数据的偏移量，使我们能够在操作过程中切换到GPS高度。
     if (gpsDataToFuse && (activeHgtSource != HGT_SOURCE_GPS)) {
             calcFiltGpsHgtOffset();
     }
 
     // Select the height measurement source
+    // 选择高度测量源
     if (rangeDataToFuse && (activeHgtSource == HGT_SOURCE_RNG)) {
         // using range finder data
         // correct for tilt using a flat earth model
+        // 使用超声数据，正确使用平坦地球模型
         if (prevTnb.c.z >= 0.7) {
             // calculate height above ground
+            // 计算地面上的高度
             hgtMea  = MAX(rangeDataDelayed.rng * prevTnb.c.z, rngOnGnd);
             // correct for terrain position relative to datum
+            // 相对于基准的地形位置正确
             hgtMea -= terrainState;
             // enable fusion
+            // 使能融合
             fuseHgtData = true;
             // set the observation noise
+            // 设置观测噪声
             posDownObsNoise = sq(constrain_float(frontend->_rngNoise, 0.1f, 10.0f));
             // add uncertainty created by terrain gradient and vehicle tilt
+            // 增加由地形梯度和车辆倾斜造成的不确定性
             posDownObsNoise += sq(rangeDataDelayed.rng * frontend->_terrGradMax) * MAX(0.0f , (1.0f - sq(prevTnb.c.z)));
         } else {
             // disable fusion if tilted too far
+            // 如果倾斜得太厉害，就可以禁用融合
             fuseHgtData = false;
         }
     } else if  (gpsDataToFuse && (activeHgtSource == HGT_SOURCE_GPS)) {
@@ -924,15 +941,18 @@ void NavEKF2_core::selectHeightForFusion()
         // enable fusion
         fuseHgtData = true;
         // set the observation noise using receiver reported accuracy or the horizontal noise scaled for typical VDOP/HDOP ratio
-        if (gpsHgtAccuracy > 0.0f) {
+		//使用接收机报告的精度或水平噪声来设置观测噪声，以达到典型的vdop/hdop比
+		if (gpsHgtAccuracy > 0.0f) {
             posDownObsNoise = sq(constrain_float(gpsHgtAccuracy, 1.5f * frontend->_gpsHorizPosNoise, 100.0f));
         } else {
             posDownObsNoise = sq(constrain_float(1.5f * frontend->_gpsHorizPosNoise, 0.1f, 10.0f));
         }
     } else if (baroDataToFuse && (activeHgtSource == HGT_SOURCE_BARO)) {
         // using Baro data
+        // 使用气压计数据
         hgtMea = baroDataDelayed.hgt - baroHgtOffset;
         // enable fusion
+        // 使能融合
         fuseHgtData = true;
         // set the observation noise
         // 设置观测噪声

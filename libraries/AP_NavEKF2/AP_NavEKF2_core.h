@@ -750,6 +750,7 @@ private:
     obs_ring_buffer_t<range_elements> storedRange;  // Range finder data buffer
     imu_ring_buffer_t<output_elements> storedOutput;// output state buffer
     Matrix3f prevTnb;               // previous nav to body transformation used for INS earth rotation compensation
+    								// 以前用于地球自转补偿的身体转换
     ftype accNavMag;                // magnitude of navigation accel - used to adjust GPS obs variance (m/s^2)
     ftype accNavMagHoriz;           // magnitude of navigation accel in horizontal plane (m/s^2)
     Vector3f earthRateNED;          // earths angular rate vector in NED (rad/s)

@@ -14,6 +14,9 @@ extern const AP_HAL::HAL& hal;
 // reset the body axis gyro bias states to zero and re-initialise the corresponding covariances
 // Assume that the calibration is performed to an accuracy of 0.5 deg/sec which will require averaging under static conditions
 // WARNING - a non-blocking calibration method must be used
+//重置身体轴陀螺偏差状态为零，并重新初始化相应的协方差
+//假设校准的精度为0.5/秒，这将要求在静态条件下进行平均。
+//警告-必须使用非阻塞校准方法
 void NavEKF2_core::resetGyroBias(void)
 {
     stateStruct.gyro_bias.zero();
@@ -27,6 +30,7 @@ void NavEKF2_core::resetGyroBias(void)
 
 /*
    vehicle specific initial gyro bias uncertainty in deg/sec
+   特定于车辆的初始陀螺偏差不确定度
  */
 float NavEKF2_core::InitialGyroBiasUncertainty(void) const
 {

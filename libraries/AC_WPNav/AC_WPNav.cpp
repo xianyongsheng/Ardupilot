@@ -568,6 +568,7 @@ void AC_WPNav::get_wp_stopping_point(Vector3f& stopping_point) const
 }
 
 /// advance_wp_target_along_track - move target location along track from origin to destination
+///advancewptarget沿着轨迹——将目标位置从起点移动到目的地
 bool AC_WPNav::advance_wp_target_along_track(float dt)
 {
     float track_covered;        // distance (in cm) along the track that the vehicle has traveled.  Measured by drawing a perpendicular line from the track to the vehicle.
@@ -577,55 +578,72 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     bool reached_leash_limit = false;   // true when track has reached leash limit and we need to slow down the target point
 
     // get current location
+    // 获取当前位置
     Vector3f curr_pos = _inav.get_position();
 
     // calculate terrain adjustments
+    // 地形调整计算
     float terr_offset = 0.0f;
     if (_terrain_alt && !get_terrain_offset(terr_offset)) {
         return false;
     }
 
     // calculate 3d vector from segment's origin
+    //从段的原点算出3d矢量
     Vector3f curr_delta = (curr_pos - Vector3f(0,0,terr_offset)) - _origin;
 
     // calculate how far along the track we are
+    // 计算我们的轨道有多远
     track_covered = curr_delta.x * _pos_delta_unit.x + curr_delta.y * _pos_delta_unit.y + curr_delta.z * _pos_delta_unit.z;
 
     // calculate the point closest to the vehicle on the segment from origin to destination
+    // 计算哪个点距离飞机最近在起点到终点这一段上
     Vector3f track_covered_pos = _pos_delta_unit * track_covered;
 
     // calculate the distance vector from the vehicle to the closest point on the segment from origin to destination
+    // 计算距离向量，飞机到最近的点
     track_error = curr_delta - track_covered_pos;
 
     // calculate the horizontal error
+    // 计算水平误差
     float track_error_xy = norm(track_error.x, track_error.y);
 
     // calculate the vertical error
+    // 计算垂直误差
     float track_error_z = fabsf(track_error.z);
 
     // get up leash if we are moving up, down leash if we are moving down
+    // 如果我们往下走，如果我们往下走，就会被牵着皮带。
     float leash_z = track_error.z >= 0 ? _pos_control.get_leash_up_z() : _pos_control.get_leash_down_z();
 
     // use pythagoras's theorem calculate how far along the track we could move the intermediate target before reaching the end of the leash
     //   track_desired_max is the distance from the vehicle to our target point along the track.  It is the "hypotenuse" which we want to be no longer than our leash (aka _track_leash_length)
     //   track_error is the line from the vehicle to the closest point on the track.  It is the "opposite" side
     //   track_leash_slack is the line from the closest point on the track to the target point.  It is the "adjacent" side.  We adjust this so the track_desired_max is no longer than the leash
-    float track_leash_length_abs = fabsf(_track_leash_length);
+	//使用毕达哥拉斯定理计算沿轨道走多远我们可以在到达皮带末端之前移动中间目标
+     // track_desired_max是沿着轨道从车辆到目标点的距离。 它是“斜边”，我们想要的不再是我们的皮带（又名_track_leash_length）
+     // track_error是从车辆到轨道上最近点的线。 这是“对立面”
+     // track_leash_slack是从轨道上最近点到目标点的直线。 它是“相邻”的一面。 我们对此进行了调整，因此track_desired_max不会超过皮带
+	float track_leash_length_abs = fabsf(_track_leash_length);
     float track_error_max_abs = MAX(_track_leash_length*track_error_z/leash_z, _track_leash_length*track_error_xy/_pos_control.get_leash_xy());
     track_leash_slack = (track_leash_length_abs > track_error_max_abs) ? safe_sqrt(sq(_track_leash_length) - sq(track_error_max_abs)) : 0;
     track_desired_max = track_covered + track_leash_slack;
 
     // check if target is already beyond the leash
+    //检查目标是否已超出皮带
     if (_track_desired > track_desired_max) {
         reached_leash_limit = true;
     }
 
     // get current velocity
+    // 获取当前速度
     const Vector3f &curr_vel = _inav.get_velocity();
     // get speed along track
+    // 获取航线方向速度
     float speed_along_track = curr_vel.x * _pos_delta_unit.x + curr_vel.y * _pos_delta_unit.y + curr_vel.z * _pos_delta_unit.z;
 
     // calculate point at which velocity switches from linear to sqrt
+    // 计算从线性到sqrt的速度
     float linear_velocity = _wp_speed_cms;
     float kP = _pos_control.get_pos_xy_kP();
     if (kP >= 0.0f) {   // avoid divide by zero
@@ -757,8 +775,10 @@ bool AC_WPNav::update_wpnav()
         }
 
         // advance the target if necessary
+        //在必要时推进目标
         if (!advance_wp_target_along_track(dt)) {
             // To-Do: handle inability to advance along track (probably because of missing terrain data)
+            //待办事项：处理无法沿着轨道前进的能力（可能是因为缺少地形数据）
             ret = false;
         }
 

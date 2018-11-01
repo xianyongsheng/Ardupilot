@@ -833,7 +833,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 
     switch (msg->msgid) {
 
-    case MAVLINK_MSG_ID_HEARTBEAT:      // MAV ID: 0
+    case MAVLINK_MSG_ID_HEARTBEAT:      // MAV ID: 0	心跳包
     {
         // We keep track of the last time we received a heartbeat from our GCS for failsafe purposes
         if(msg->sysid != copter.g.sysid_my_gcs) break;
@@ -842,7 +842,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_SET_MODE:       // MAV ID: 11
+    case MAVLINK_MSG_ID_SET_MODE:       // MAV ID: 11	设置模式
     {
 #ifdef DISALLOW_GCS_MODE_CHANGE_DURING_RC_FAILSAFE
         if (!copter.failsafe.radio) {
@@ -857,7 +857,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:         // MAV ID: 21
+    case MAVLINK_MSG_ID_PARAM_REQUEST_LIST:         // MAV ID: 21	地面站请请求参数
     {
         // if we have not yet initialised (including allocating the motors
         // object) we drop this request. That prevents the GCS from getting
@@ -880,7 +880,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_PARAM_SET:     // 23
+    case MAVLINK_MSG_ID_PARAM_SET:     // 23	参数设置
     {
         handle_param_set(msg, &copter.DataFlash);
         break;
@@ -894,14 +894,15 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST: // MAV ID: 38
+    case MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST: // MAV ID: 38	写入部分列表
     {
         handle_mission_write_partial_list(copter.mission, msg);
         break;
     }
 
     // GCS has sent us a mission item, store to EEPROM
-    case MAVLINK_MSG_ID_MISSION_ITEM:           // MAV ID: 39
+    // GCS给我们发送了一个任务项目，存储到EEPROM
+    case MAVLINK_MSG_ID_MISSION_ITEM:           // MAV ID: 39	上传任务
     {
         if (handle_mission_item(msg, copter.mission)) {
             copter.DataFlash.Log_Write_EntireMission(copter.mission);
@@ -909,7 +910,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
     
-    case MAVLINK_MSG_ID_MISSION_ITEM_INT:
+    case MAVLINK_MSG_ID_MISSION_ITEM_INT:		// MAV ID: 73	上传任务
     {
         if (handle_mission_item(msg, copter.mission)) {
             copter.DataFlash.Log_Write_EntireMission(copter.mission);
@@ -918,21 +919,23 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
     }
 
     // read an individual command from EEPROM and send it to the GCS
+    //从EEPROM中读取单个命令并发送给GCS
     case MAVLINK_MSG_ID_MISSION_REQUEST_INT:
-    case MAVLINK_MSG_ID_MISSION_REQUEST:     // MAV ID: 40, 51
+    case MAVLINK_MSG_ID_MISSION_REQUEST:     // MAV ID: 40, 51	地面站请求任务信息
     {
         handle_mission_request(copter.mission, msg);
         break;
     }
 
-    case MAVLINK_MSG_ID_MISSION_SET_CURRENT:    // MAV ID: 41
+    case MAVLINK_MSG_ID_MISSION_SET_CURRENT:    // MAV ID: 41	设置当前任务
     {
         handle_mission_set_current(copter.mission, msg);
         break;
     }
 
     // GCS request the full list of commands, we return just the number and leave the GCS to then request each command individually
-    case MAVLINK_MSG_ID_MISSION_REQUEST_LIST:       // MAV ID: 43
+	// GCS请求命令的完整列表，我们只返回数字，让GCS单独请求每个命令
+	case MAVLINK_MSG_ID_MISSION_REQUEST_LIST:       // MAV ID: 43
     {
         handle_mission_request_list(copter.mission, msg);
         break;
@@ -940,19 +943,21 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 
     // GCS provides the full number of commands it wishes to upload
     //  individual commands will then be sent from the GCS using the MAVLINK_MSG_ID_MISSION_ITEM message
+    // GCS提供它希望上载的全部命令
+	// 然后使用MAVLINK_MSG_ID_MISSION_ITEM消息从GCS发送单个命令
     case MAVLINK_MSG_ID_MISSION_COUNT:          // MAV ID: 44
     {
         handle_mission_count(copter.mission, msg);
         break;
     }
 
-    case MAVLINK_MSG_ID_MISSION_CLEAR_ALL:      // MAV ID: 45
+    case MAVLINK_MSG_ID_MISSION_CLEAR_ALL:      // MAV ID: 45	删除所以任务
     {
         handle_mission_clear_all(copter.mission, msg);
         break;
     }
 
-    case MAVLINK_MSG_ID_SET_GPS_GLOBAL_ORIGIN:
+    case MAVLINK_MSG_ID_SET_GPS_GLOBAL_ORIGIN:		// MAV ID: 48	设置全局原点
     {
         mavlink_set_gps_global_origin_t packet;
         mavlink_msg_set_gps_global_origin_decode(msg, &packet);
@@ -968,13 +973,13 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_REQUEST_DATA_STREAM:    // MAV ID: 66
+    case MAVLINK_MSG_ID_REQUEST_DATA_STREAM:    // MAV ID: 66	请求数据流
     {
         handle_request_data_stream(msg, false);
         break;
     }
 
-    case MAVLINK_MSG_ID_STATUSTEXT:
+    case MAVLINK_MSG_ID_STATUSTEXT:		//MAV ID: 253	状态文字信息。这些消息在QGroundControl的COMM控制台中以黄色显示
     {
         // ignore any statustext messages not from our GCS:
         if (msg->sysid != copter.g.sysid_my_gcs) {
@@ -996,7 +1001,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_RC_CHANNELS_OVERRIDE:       // MAV ID: 70
+    case MAVLINK_MSG_ID_RC_CHANNELS_OVERRIDE:       // MAV ID: 70	发送到MAV的RC信道的RAW值覆盖从RC无线电接收的信息
     {
         // allow override of RC channel values for HIL
         // or for complete GCS control of switch position
@@ -1023,7 +1028,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_MANUAL_CONTROL:
+    case MAVLINK_MSG_ID_MANUAL_CONTROL:		// MAV ID: 69	用于使用标准操纵杆 手动控制飞机	
     {
         if(msg->sysid != copter.g.sysid_my_gcs) break;                         // Only accept control from our gcs
 
@@ -1053,7 +1058,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_COMMAND_INT:
+    case MAVLINK_MSG_ID_COMMAND_INT:	//MAV ID: 75	使用参数作为缩放整数的命令编码的消息
     {
         // decode packet
         mavlink_command_int_t packet;
@@ -1091,7 +1096,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
     }
 
     // Pre-Flight calibration requests
-    case MAVLINK_MSG_ID_COMMAND_LONG:       // MAV ID: 76
+    case MAVLINK_MSG_ID_COMMAND_LONG:       // MAV ID: 76	向MAV发送最多包含七个参数的命令
     {
         // decode packet
         mavlink_command_long_t packet;
@@ -1099,11 +1104,11 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 
         switch(packet.command) {
 
-        case MAV_CMD_START_RX_PAIR:
+        case MAV_CMD_START_RX_PAIR:		//500	启动接收器配对
             result = handle_rc_bind(packet);
             break;
 
-        case MAV_CMD_NAV_TAKEOFF: {
+        case MAV_CMD_NAV_TAKEOFF: {		//22	自动起飞
             // param3 : horizontal navigation by pilot acceptable
             // param4 : yaw angle   (not supported)
             // param5 : latitude    (not supported)
@@ -1121,25 +1126,25 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         }
 
 
-        case MAV_CMD_NAV_LOITER_UNLIM:
+        case MAV_CMD_NAV_LOITER_UNLIM:		//17	无限留待
             if (copter.set_mode(LOITER, MODE_REASON_GCS_COMMAND)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_NAV_RETURN_TO_LAUNCH:
+        case MAV_CMD_NAV_RETURN_TO_LAUNCH:	//自动返航
             if (copter.set_mode(RTL, MODE_REASON_GCS_COMMAND)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_NAV_LAND:
+        case MAV_CMD_NAV_LAND:		//自动降落
             if (copter.set_mode(LAND, MODE_REASON_GCS_COMMAND)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_CONDITION_YAW:
+        case MAV_CMD_CONDITION_YAW:		//达到一定的目标角度。
             // param1 : target angle [0-360]
             // param2 : speed during change [deg per second]
             // param3 : direction (-1:ccw, +1:cw)
@@ -1154,7 +1159,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_DO_CHANGE_SPEED:
+        case MAV_CMD_DO_CHANGE_SPEED:	//更改速度和/或油门设定点。
             // param1 : unused
             // param2 : new speed in m/s
             // param3 : unused
@@ -1167,7 +1172,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_DO_SET_HOME:
+        case MAV_CMD_DO_SET_HOME:	//将家庭位置更改为当前位置或指定位置。
             // param1 : use current (1=use current location, 0=use specified location)
             // param5 : latitude
             // param6 : longitude
@@ -1192,14 +1197,14 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_DO_FLIGHTTERMINATION:
+        case MAV_CMD_DO_FLIGHTTERMINATION:		//立即终止航班
             if (packet.param1 > 0.5f) {
                 copter.init_disarm_motors();
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_DO_SET_ROI:
+        case MAV_CMD_DO_SET_ROI:	//设置传感器组或车辆本身的感兴趣区域（ROI）。然后，车辆控制系统可以使用它来控制车辆姿态和各种传感器（例如摄像机）的姿态。
             // param1 : regional of interest mode (not supported)
             // param2 : mission index/ target id (not supported)
             // param3 : ROI index (not supported)
@@ -1243,7 +1248,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             result = MAV_RESULT_ACCEPTED;
             break;
 #endif // CAMERA == ENABLED
-        case MAV_CMD_DO_MOUNT_CONTROL:
+        case MAV_CMD_DO_MOUNT_CONTROL:	//任务命令控制摄像机或天线安装
 #if MOUNT == ENABLED
             if(!copter.camera_mount.has_pan_control()) {
                 copter.set_auto_yaw_look_at_heading((float)packet.param3 / 100.0f,0.0f,0,0);
@@ -1253,7 +1258,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 #endif
             break;
 
-        case MAV_CMD_MISSION_START:
+        case MAV_CMD_MISSION_START:		//开始执行任务
             if (copter.motors->armed() && copter.set_mode(AUTO, MODE_REASON_GCS_COMMAND)) {
                 copter.set_auto_armed(true);
                 if (copter.mission.state() != AP_Mission::MISSION_RUNNING) {
@@ -1263,7 +1268,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_PREFLIGHT_CALIBRATION:
+        case MAV_CMD_PREFLIGHT_CALIBRATION:  //触发校准。只有在飞行前模式下才会接受此命令。除温度校准外，在一条消息中只应设置一个传感器，其他所有传感器应为零。
             // exit immediately if armed
             if (copter.motors->armed()) {
                 result = MAV_RESULT_FAILED;
@@ -1312,7 +1317,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_PREFLIGHT_SET_SENSOR_OFFSETS:
+        case MAV_CMD_PREFLIGHT_SET_SENSOR_OFFSETS:	//设置传感器偏移。只有在飞行前模式下才会接受此命令。
             {
                 uint8_t compassNumber = -1;
                 if (is_equal(packet.param1, 2.0f)) {
@@ -1329,14 +1334,16 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
                 break;
             }
 
-        case MAV_CMD_COMPONENT_ARM_DISARM:
+        case MAV_CMD_COMPONENT_ARM_DISARM:	//解锁和上锁
             if (is_equal(packet.param1,1.0f)) {
                 // attempt to arm and return success or failure
+                //试图武装和回报成功或失败
                 if (copter.init_arm_motors(true)) {
                     result = MAV_RESULT_ACCEPTED;
                 }
             } else if (is_zero(packet.param1) && (copter.ap.land_complete || is_equal(packet.param2,21196.0f)))  {
                 // force disarming by setting param2 = 21196 is deprecated
+                //设置param2 = 21196强制解除武装是不赞成的
                 copter.init_disarm_motors();
                 result = MAV_RESULT_ACCEPTED;
             } else {
@@ -1344,7 +1351,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_GET_HOME_POSITION:
+        case MAV_CMD_GET_HOME_POSITION:	//请求家点
             if (copter.ap.home_state != HOME_UNSET) {
                 send_home(copter.ahrs.get_home());
                 Location ekf_origin;
@@ -1357,31 +1364,31 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_DO_SET_SERVO:
+        case MAV_CMD_DO_SET_SERVO:	//设置伺服电机PWM
             if (copter.ServoRelayEvents.do_set_servo(packet.param1, packet.param2)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_DO_REPEAT_SERVO:
+        case MAV_CMD_DO_REPEAT_SERVO:	//在其标称设置和所需PWM之间循环一个所需周期的所需周期数。
             if (copter.ServoRelayEvents.do_repeat_servo(packet.param1, packet.param2, packet.param3, packet.param4*1000)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_DO_SET_RELAY:
+        case MAV_CMD_DO_SET_RELAY:	//设置继电器
             if (copter.ServoRelayEvents.do_set_relay(packet.param1, packet.param2)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_DO_REPEAT_RELAY:
+        case MAV_CMD_DO_REPEAT_RELAY:	//以期望的周期使继电器接通和断开所需的循环次数
             if (copter.ServoRelayEvents.do_repeat_relay(packet.param1, packet.param2, packet.param3*1000)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
 
-        case MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN:
+        case MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN:	//请求重启或关闭系统组件。
             if (is_equal(packet.param1,1.0f) || is_equal(packet.param1,3.0f)) {
                 AP_Notify::flags.firmware_update = 1;
                 copter.update_notify();
@@ -1392,7 +1399,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             }
             break;
 
-        case MAV_CMD_DO_FENCE_ENABLE:
+        case MAV_CMD_DO_FENCE_ENABLE:	//任务命令启用地理围栏
 #if AC_FENCE == ENABLED
             result = MAV_RESULT_ACCEPTED;
             switch ((uint16_t)packet.param1) {
@@ -1413,7 +1420,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             break;
 
 #if PARACHUTE == ENABLED
-        case MAV_CMD_DO_PARACHUTE:
+        case MAV_CMD_DO_PARACHUTE:	//任务命令触发降落伞
             // configure or release parachute
             result = MAV_RESULT_ACCEPTED;
             switch ((uint16_t)packet.param1) {
@@ -1436,7 +1443,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             break;
 #endif
 
-        case MAV_CMD_DO_MOTOR_TEST:
+        case MAV_CMD_DO_MOTOR_TEST:		//任务命令执行电机测试
             // param1 : motor sequence number (a number from 1 to max number of motors on the vehicle)
             // param2 : throttle type (0=throttle percentage, 1=PWM, 2=pilot throttle channel pass-through. See MOTOR_TEST_THROTTLE_TYPE enum)
             // param3 : throttle (range depends upon param2)
@@ -1445,7 +1452,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             break;
 
 #if GRIPPER_ENABLED == ENABLED
-        case MAV_CMD_DO_GRIPPER:
+        case MAV_CMD_DO_GRIPPER:	//任务命令操作EPM抓手。
             // param1 : gripper number (ignored)
             // param2 : action (0=release, 1=grab). See GRIPPER_ACTIONS enum.
             if(!copter.g2.gripper.enabled()) {
@@ -1467,7 +1474,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             break;
 #endif
 
-        case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES: {
+        case MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES: {请求自动驾驶仪版本
             if (is_equal(packet.param1,1.0f)) {
                 send_autopilot_version(FIRMWARE_VERSION);
                 result = MAV_RESULT_ACCEPTED;
@@ -1475,14 +1482,14 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             break;
         }
 
-        case MAV_CMD_DO_START_MAG_CAL:
+        case MAV_CMD_DO_START_MAG_CAL:	//启动磁力计校准。
         case MAV_CMD_DO_ACCEPT_MAG_CAL:
         case MAV_CMD_DO_CANCEL_MAG_CAL:
             result = copter.compass.handle_mag_cal_command(packet);
 
             break;
 
-        case MAV_CMD_DO_SEND_BANNER: {
+        case MAV_CMD_DO_SEND_BANNER: {	//回复版本横幅。
             result = MAV_RESULT_ACCEPTED;
 
             send_text(MAV_SEVERITY_INFO, FIRMWARE_STRING);
@@ -1503,6 +1510,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         }
 
         /* Solo user presses Fly button */
+		/*用户按飞按钮*/
         case MAV_CMD_SOLO_BTN_FLY_CLICK: {
             result = MAV_RESULT_ACCEPTED;
 
@@ -1518,6 +1526,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         }
 
         /* Solo user holds down Fly button for a couple of seconds */
+		/* Solo用户按住Fly按钮几秒钟*/
         case MAV_CMD_SOLO_BTN_FLY_HOLD: {
             result = MAV_RESULT_ACCEPTED;
 
@@ -1541,6 +1550,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         }
 
         /* Solo user presses pause button */
+		/*用户按暂停键*/
         case MAV_CMD_SOLO_BTN_PAUSE_CLICK: {
             result = MAV_RESULT_ACCEPTED;
 
@@ -1571,7 +1581,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
             break;
         }
 
-        case MAV_CMD_ACCELCAL_VEHICLE_POS:
+        case MAV_CMD_ACCELCAL_VEHICLE_POS:	//在进行加速度计校准时使用。当发送到GCS时告诉它将车辆放入什么位置。当发送到车辆时说明车辆处于什么位置。
             result = MAV_RESULT_FAILED;
 
             if (copter.ins.get_acal()->gcs_vehicle_position(packet.param1)) {
@@ -1590,13 +1600,13 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_COMMAND_ACK:        // MAV ID: 77
+    case MAVLINK_MSG_ID_COMMAND_ACK:        // MAV ID: 77	报告命令的状态。包括反馈命令是否已执行。
     {
         copter.command_ack_counter++;
         break;
     }
 
-    case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:   // MAV ID: 82
+    case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:   // MAV ID: 82	设定所需的车辆姿态。由外部控制器用于命令车辆（手动控制器或其他系统）。
     {
         // decode packet
         mavlink_set_attitude_target_t packet;
@@ -1638,7 +1648,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:     // MAV ID: 84
+    case MAVLINK_MSG_ID_SET_POSITION_TARGET_LOCAL_NED:     // MAV ID: 84 在局部东北向下坐标系中设置所需的车辆位置。由外部控制器用于命令车辆（手动控制器或其他系统）。
     {
         // decode packet
         mavlink_set_position_target_local_ned_t packet;
@@ -1728,7 +1738,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT:    // MAV ID: 86
+    case MAVLINK_MSG_ID_SET_POSITION_TARGET_GLOBAL_INT:    // MAV ID: 86	在全局坐标系（WGS84）中设置所需的车辆位置，速度和/或加速度。由外部控制器用于命令车辆（手动控制器或其他系统）。
     {
         // decode packet
         mavlink_set_position_target_global_int_t packet;
@@ -1819,7 +1829,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_DISTANCE_SENSOR:
+    case MAVLINK_MSG_ID_DISTANCE_SENSOR:	//#132 板载测距仪的距离传感器信息。
     {
         result = MAV_RESULT_ACCEPTED;
         copter.rangefinder.handle_msg(msg);
@@ -1829,7 +1839,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_GPS_RTCM_DATA:
+    case MAVLINK_MSG_ID_GPS_RTCM_DATA:	//#233 用于注入板载GPS的RTCM消息（用于DGPS）
     case MAVLINK_MSG_ID_GPS_INPUT:
     case MAVLINK_MSG_ID_HIL_GPS:
     {
@@ -1886,34 +1896,34 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 #endif //  HIL_MODE != HIL_MODE_DISABLED
 
     case MAVLINK_MSG_ID_RADIO:
-    case MAVLINK_MSG_ID_RADIO_STATUS:       // MAV ID: 109
+    case MAVLINK_MSG_ID_RADIO_STATUS:       // MAV ID: 109 无线电生成的状态并注入MAVLink流。
     {
         handle_radio_status(msg, copter.DataFlash, copter.should_log(MASK_LOG_PM));
         break;
     }
 
-    case MAVLINK_MSG_ID_LOG_REQUEST_DATA:
+    case MAVLINK_MSG_ID_LOG_REQUEST_DATA:	//#119	请求日志
         copter.in_log_download = true;
         /* no break */
     case MAVLINK_MSG_ID_LOG_ERASE:
         /* no break */
-    case MAVLINK_MSG_ID_LOG_REQUEST_LIST:
+    case MAVLINK_MSG_ID_LOG_REQUEST_LIST:	//#117	请求可用日志列表。
         if (!copter.in_mavlink_delay && !copter.motors->armed()) {
             handle_log_message(msg, copter.DataFlash);
         }
         break;
-    case MAVLINK_MSG_ID_LOG_REQUEST_END:
+    case MAVLINK_MSG_ID_LOG_REQUEST_END:	//#122	停止日志传输并恢复正常日志记录
         copter.in_log_download = false;
         if (!copter.in_mavlink_delay && !copter.motors->armed()) {
             handle_log_message(msg, copter.DataFlash);
         }
         break;
 
-    case MAVLINK_MSG_ID_SERIAL_CONTROL:
+    case MAVLINK_MSG_ID_SERIAL_CONTROL:	//#126	控制串口。
         handle_serial_control(msg, copter.gps);
         break;
 
-    case MAVLINK_MSG_ID_GPS_INJECT_DATA:
+    case MAVLINK_MSG_ID_GPS_INJECT_DATA:	//#123	注入车载GPS的数据（用于DGPS）
         handle_gps_inject(msg, copter.gps);
         result = MAV_RESULT_ACCEPTED;
         break;
@@ -1927,7 +1937,8 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 
 #if AC_FENCE == ENABLED
     // send or receive fence points with GCS
-    case MAVLINK_MSG_ID_FENCE_POINT:            // MAV ID: 160
+    //使用GCS发送或接收围栏点
+    case MAVLINK_MSG_ID_FENCE_POINT:            // MAV ID: 160	围栏点。用于从GCS - > MAV设置一个点。也用于从MAV返回一个点 - > GCS。
     case MAVLINK_MSG_ID_FENCE_FETCH_POINT:
         copter.fence.handle_msg(chan, msg);
         break;
@@ -1959,7 +1970,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
 #endif // MOUNT == ENABLED
 
-    case MAVLINK_MSG_ID_TERRAIN_DATA:
+    case MAVLINK_MSG_ID_TERRAIN_DATA:	//#134	从GCS发送的地形数据。lat / lon和grid_spacing必须与TERRAIN_REQUEST中的lat / lon相同
     case MAVLINK_MSG_ID_TERRAIN_CHECK:
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN
         copter.terrain.handle_data(chan, msg);
@@ -1968,6 +1979,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 
 #if AC_RALLY == ENABLED
     // receive a rally point from GCS and store in EEPROM
+    // 收到GCS的集结点，在EEPROM商店购买
     case MAVLINK_MSG_ID_RALLY_POINT: {
         mavlink_rally_point_t packet;
         mavlink_msg_rally_point_decode(msg, &packet);
@@ -2004,6 +2016,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
     }
 
     //send a rally point to the GCS
+    //向GCS发送一个集结点
     case MAVLINK_MSG_ID_RALLY_FETCH_POINT: {
         mavlink_rally_fetch_point_t packet;
         mavlink_msg_rally_fetch_point_decode(msg, &packet);
@@ -2028,25 +2041,25 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
     }
 #endif // AC_RALLY == ENABLED
 
-    case MAVLINK_MSG_ID_REMOTE_LOG_BLOCK_STATUS:
+    case MAVLINK_MSG_ID_REMOTE_LOG_BLOCK_STATUS:	//#185	发送自动驾驶仪板可能已发送的每个日志块的状态。
         copter.DataFlash.remote_log_block_status_msg(chan, msg);
         break;
 
-    case MAVLINK_MSG_ID_AUTOPILOT_VERSION_REQUEST:
+    case MAVLINK_MSG_ID_AUTOPILOT_VERSION_REQUEST:	//#183	从系统/组件请求自动驾驶仪版本。
         send_autopilot_version(FIRMWARE_VERSION);
         break;
 
-    case MAVLINK_MSG_ID_LED_CONTROL:
+    case MAVLINK_MSG_ID_LED_CONTROL:	//#186	控制车辆LED。
         // send message to Notify
         AP_Notify::handle_led_control(msg);
         break;
 
-    case MAVLINK_MSG_ID_PLAY_TUNE:
+    case MAVLINK_MSG_ID_PLAY_TUNE:	//#258	控制车辆音调产生（蜂鸣器）
         // send message to Notify
         AP_Notify::handle_play_tune(msg);
         break;
                 
-    case MAVLINK_MSG_ID_SET_HOME_POSITION:
+    case MAVLINK_MSG_ID_SET_HOME_POSITION:	//#243	系统将返回并着陆的位置。
     {
         mavlink_set_home_position_t packet;
         mavlink_msg_set_home_position_decode(msg, &packet);
@@ -2066,7 +2079,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
         break;
     }
 
-    case MAVLINK_MSG_ID_ADSB_VEHICLE:
+    case MAVLINK_MSG_ID_ADSB_VEHICLE:	//#246	ADSB车辆的位置和信息
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG:
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_DYNAMIC:
     case MAVLINK_MSG_ID_UAVIONIX_ADSB_TRANSCEIVER_HEALTH_REPORT:
@@ -2075,7 +2088,7 @@ void GCS_MAVLINK_Copter::handleMessage(mavlink_message_t* msg)
 #endif
         break;
 
-    case MAVLINK_MSG_ID_VISION_POSITION_DELTA:
+    case MAVLINK_MSG_ID_VISION_POSITION_DELTA:	//#11011	基于摄像机视觉的态度和位置增量。
 #if VISUAL_ODOMETRY_ENABLED == ENABLED
         copter.g2.visual_odom.handle_msg(msg);
 #endif

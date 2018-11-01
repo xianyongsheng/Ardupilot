@@ -579,9 +579,13 @@ void NavEKF2_core::readBaroData()
 // calculate filtered offset between baro height measurement and EKF height estimate
 // offset should be subtracted from baro measurement to match filter estimate
 // offset is used to enable reversion to baro from alternate height data source
+//计算在baro高度测量和EKF高度估计之间的过滤偏移
+//偏移量应该从baro测量中减去，以匹配滤波器估计
+//偏移量用于从备用高度数据源中恢复到baro
 void NavEKF2_core::calcFiltBaroOffset()
 {
     // Apply a first order LPF with spike protection
+    // 一阶LPF
     baroHgtOffset += 0.1f * constrain_float(baroDataDelayed.hgt + stateStruct.position.z - baroHgtOffset, -5.0f, 5.0f);
 }
 

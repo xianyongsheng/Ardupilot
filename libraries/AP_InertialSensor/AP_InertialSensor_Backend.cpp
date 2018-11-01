@@ -266,6 +266,14 @@ void AP_InertialSensor_Backend::_notify_new_accel_raw_sample(uint8_t instance,
       rate, so we use the provided sample_us to get the deltaT. The
       difference between the two is whether sample_us is provided.
      */
+     /*
+       我们有两类传感器。 基于FIFO的传感器产生数据
+       在一个非常可预测的总体速度，但数据进来
+       束，所以我们使用提供的deltaT采样率。非FIFO
+       传感器不会聚集样品，但实际上也会有所不同
+       rate，所以我们使用提供的sample_us来获取deltaT。该
+       两者之间的区别在于是否提供了sample_us。
+     */
     if (sample_us != 0 && _imu._accel_last_sample_us[instance] != 0) {
         dt = (sample_us - _imu._accel_last_sample_us[instance]) * 1.0e-6;
     } else {

@@ -221,6 +221,9 @@ void AP_BoardConfig::init()
     // let the HAL know the target temperature. We pass a pointer as
     // we want the user to be able to change the parameter without
     // rebooting
+    //让HAL知道目标温度。 我们将指针传递给
+    //我们希望用户能够在没有的情况下更改参数
+    //重启
     hal.util->set_imu_target_temp((int8_t *)&_imu_target_temperature);
 #endif
 }

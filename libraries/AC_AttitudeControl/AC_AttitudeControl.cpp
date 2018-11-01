@@ -152,7 +152,28 @@ void AC_AttitudeControl::reset_rate_controller_I_terms()
 //    integrate them into the target attitude. Any errors between the target attitude and the measured attitude are
 //    corrected by first correcting the thrust vector until the angle between the target thrust vector measured
 //    trust vector drops below 2*AC_ATTITUDE_THRUST_ERROR_ANGLE. At this point the heading is also corrected.
+/*
+//态度控制器围绕期望态度，目标态度的概念进行工作
+//和衡量态度 期望的态度是输入态度控制器的态度
+//表示高级代码希望飞机移动到的位置。 目标态度被移动了
+//通过加加速度，加速度和速度限制达到理想的姿态。 提供目标角速度
+//直接进入速率控制器 测量姿态和目标姿态之间的角度误差是
+//送入角度控制器，角度控制器的输出在速率控制器的输入端相加。
+//通过将目标角速度直接馈入速率控制器中测量和目标姿态
+//保持非常紧密的联系。
 
+//以下所有输入功能都遵循相同的步骤
+// 1.定义飞机应使用输入变量尝试实现的所需姿态
+// 2.使用所需的姿态和输入变量，定义目标角速度，以便它应该将目标态度转向期望的态度
+// 3.如果没有使用_rate_bf_ff_enabled＆_use_ff_and_input_shaping，那么制定目标态度
+	 并且目标角速度等于期望的姿态和期望的角速度。
+// 4.确保_attitude_target_quat，_attitude_target_euler_angle，_attitude_target_euler_rate和
+	 _attitude_target_ang_vel已定义。这确保了输入模式可以在不连续的情况下进行更改。
+// 5.先运行attitude_controller_run_quat，将目标角速度传递给速率控制器和
+	 将他们融入目标态度。目标态度和测量态度之间的任何误差都是
+	 通过首先校正推力矢量直到测量的目标推力矢量之间的角度进行校正
+	 信任向量低于2 * AC_ATTITUDE_THRUST_ERROR_ANGLE。此时标题也得到纠正。
+*/
 
 
 // Command a Quaternion attitude with feedforward and smoothing
@@ -469,6 +490,8 @@ void AC_AttitudeControl::attitude_controller_run_quat()
 
 // thrust_heading_rotation_angles - calculates two ordered rotations to move the att_from_quat quaternion to the att_to_quat quaternion.
 // The first rotation corrects the thrust vector and the second rotation corrects the heading vector.
+//推力旋转角度-计算两个有序的旋转，将attfromquat四元数移动到atttoquat四元数。
+//第一个旋转修正了推力矢量，第二个旋转修正了航向矢量。
 void AC_AttitudeControl::thrust_heading_rotation_angles(Quaternion& att_to_quat, const Quaternion& att_from_quat, Vector3f& att_diff_angle, float& thrust_vec_dot)
 {
     Matrix3f att_to_rot_matrix; // earth frame to target frame

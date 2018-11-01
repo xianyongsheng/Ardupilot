@@ -21,6 +21,7 @@
 #include "AP_Math.h"
 
 // return the rotation matrix equivalent for this quaternion
+//返回这个四元数的旋转矩阵
 void Quaternion::rotation_matrix(Matrix3f &m) const
 {
     float q3q3 = q3 * q3;
@@ -45,6 +46,7 @@ void Quaternion::rotation_matrix(Matrix3f &m) const
 }
 
 // return the rotation matrix equivalent for this quaternion after normalization
+//返回这个四元数归一化之后的旋转矩阵
 void Quaternion::rotation_matrix_norm(Matrix3f &m) const
 {
     float q1q1 = q1 * q1;
@@ -73,6 +75,7 @@ void Quaternion::rotation_matrix_norm(Matrix3f &m) const
 // return the rotation matrix equivalent for this quaternion
 // Thanks to Martin John Baker
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+//返回这个四元数的旋转矩阵
 void Quaternion::from_rotation_matrix(const Matrix3f &m)
 {
     const float &m00 = m.a.x;
@@ -119,6 +122,7 @@ void Quaternion::from_rotation_matrix(const Matrix3f &m)
 }
 
 // convert a vector from earth to body frame
+// 从机体坐标系转换一个矢量
 void Quaternion::earth_to_body(Vector3f &v) const
 {
     Matrix3f m;
@@ -127,6 +131,7 @@ void Quaternion::earth_to_body(Vector3f &v) const
 }
 
 // create a quaternion from Euler angles
+//用欧拉角创建一个四元数
 void Quaternion::from_euler(float roll, float pitch, float yaw)
 {
     float cr2 = cosf(roll*0.5f);
@@ -143,6 +148,7 @@ void Quaternion::from_euler(float roll, float pitch, float yaw)
 }
 
 // create a quaternion from Euler angles
+//用欧拉角创建一个四元数
 void Quaternion::from_vector312(float roll ,float pitch, float yaw)
 {
     Matrix3f m;

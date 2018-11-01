@@ -44,6 +44,7 @@ void SRV_Channel::output_ch(void)
     }
     if (passthrough_from != -1) {
         // we are doing passthrough from input to output for this channel
+        // 我们正在做透传从输入到输出通道
         RC_Channel *rc = RC_Channels::rc_channel(passthrough_from);
         if (rc) {
             if (SRV_Channels::passthrough_disabled()) {

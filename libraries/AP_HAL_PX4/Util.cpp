@@ -189,6 +189,7 @@ void PX4Util::set_imu_temp(float current)
     }
 
     // average over temperatures to remove noise
+    // 平均温度减少噪声
     _heater.count++;
     _heater.sum += current;
     
@@ -204,11 +205,13 @@ void PX4Util::set_imu_temp(float current)
     _heater.count = 0;
 
     // experimentally tweaked for Pixhawk2
+    // 根据实验调整
     const float kI = 0.3f;
     const float kP = 200.0f;
     float target = (float)(*_heater.target);
 
     // limit to 65 degrees to prevent damage
+    //限制65度以防止损坏
     target = constrain_float(target, 0, 65);
     
     float err = target - current;

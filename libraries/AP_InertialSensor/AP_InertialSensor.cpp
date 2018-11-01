@@ -1526,9 +1526,11 @@ AuxiliaryBus *AP_InertialSensor::get_auxiliary_bus(int16_t backend_id, uint8_t i
 }
 
 // calculate vibration levels and check for accelerometer clipping (called by a backends)
+//计算振动水平并检查加速度计的剪辑（由后端调用）
 void AP_InertialSensor::calc_vibration_and_clipping(uint8_t instance, const Vector3f &accel, float dt)
 {
     // check for clipping
+    // 限幅
     if (fabsf(accel.x) > AP_INERTIAL_SENSOR_ACCEL_CLIP_THRESH_MSS ||
         fabsf(accel.y) > AP_INERTIAL_SENSOR_ACCEL_CLIP_THRESH_MSS ||
         fabsf(accel.z) > AP_INERTIAL_SENSOR_ACCEL_CLIP_THRESH_MSS) {
@@ -1536,6 +1538,7 @@ void AP_InertialSensor::calc_vibration_and_clipping(uint8_t instance, const Vect
     }
 
     // calculate vibration levels
+    // 计算震动级
     if (instance < INS_VIBRATION_CHECK_INSTANCES) {
         // filter accel at 5hz
         Vector3f accel_filt = _accel_vibe_floor_filter[instance].apply(accel, dt);

@@ -804,6 +804,7 @@ GCS_MAVLINK::update(run_cli_fn run_cli, uint32_t max_time_us)
         bool parsed_packet = false;
         
         // Try to get a new message
+        // 解析信息
         if (mavlink_parse_char(chan, c, &msg, &status)) {
             hal.util->perf_begin(_perf_packet);
             packetReceived(status, msg);
@@ -829,6 +830,7 @@ GCS_MAVLINK::update(run_cli_fn run_cli, uint32_t max_time_us)
     uint32_t wp_recv_time = 1000U + (stream_slowdown*20);
 
     // stop waypoint receiving if timeout
+    // 如果超时，停止航点接收
     if (waypoint_receiving && (tnow - waypoint_timelast_receive) > wp_recv_time+waypoint_receive_timeout) {
         waypoint_receiving = false;
     } else if (waypoint_receiving &&

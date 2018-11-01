@@ -238,6 +238,7 @@ void Copter::auto_wp_start(const Location_Class& dest_loc)
 void Copter::auto_wp_run()
 {
     // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
+    // 如果不是自动武装或汽车联锁，则没有启动节流阀，立即退出。
     if (!motors->armed() || !ap.auto_armed || !motors->get_interlock()) {
         // To-Do: reset waypoint origin to current location because copter is probably on the ground so we don't want it lurching left or right on take-off
         //    (of course it would be better if people just used take-off)
@@ -614,12 +615,14 @@ uint8_t Copter::get_default_auto_yaw_mode(bool rtl)
 void Copter::set_auto_yaw_mode(uint8_t yaw_mode)
 {
     // return immediately if no change
+    // 如果没有改变立即退出
     if (auto_yaw_mode == yaw_mode) {
         return;
     }
     auto_yaw_mode = yaw_mode;
 
     // perform initialisation
+    // 执行初始化
     switch (auto_yaw_mode) {
 
     case AUTO_YAW_LOOK_AT_NEXT_WP:

@@ -288,6 +288,7 @@ void PX4RCOutput::force_safety_off(void)
 void PX4RCOutput::force_safety_pending_requests(void)
 {
     // check if there is a pending saftey_state change. If so (timer != 0) then set it.
+    //检查是否有一个未决的saftey_state更改。如果是这样(计时器! = 0)然后把它。
     uint32_t now = AP_HAL::millis();
     if (_safety_state_request_last_ms != 0 &&
         now - _safety_state_request_last_ms >= 100) {
@@ -451,17 +452,21 @@ void PX4RCOutput::_send_outputs(void)
 
     if ((_enabled_channels & ((1U<<_servo_count)-1)) == 0) {
         // no channels enabled
+        // 没有通道使能
         _arm_actuators(false);
         goto update_pwm;
     }
 
     // always send at least at 20Hz, otherwise the IO board may think
     // we are dead
+    //至少发送20Hz，否则IO板可能会认为
+	//我们死了
     if (now - _last_output > 50000) {
         _need_update = true;
     }
 
     // check for PWM count changing. This can happen then the user changes BRD_PWM_COUNT
+    //检查PWM计数是否有变化。这可能发生在用户更改BRD_PWM_COUNT之后
     if (now - _last_config_us > 1000000) {
         if (_pwm_fd != -1) {
             ioctl(_pwm_fd, PWM_SERVO_GET_COUNT, (unsigned long)&_servo_count);
@@ -580,6 +585,8 @@ void PX4RCOutput::timer_tick(void)
     if (_output_mode != MODE_PWM_ONESHOT && !_corking) {
         /* in oneshot mode the timer does nothing as the outputs are
          * sent from push() */
+         /*在oneshot模式下，定时器不做任何输出
+			*从push()发送 */
         _send_outputs();
     }
 

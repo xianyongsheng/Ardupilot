@@ -151,6 +151,9 @@ public:
     // attitude controller's target attitude.
     // **NOTE** Using vector3f*deg(100) is more efficient than deg(vector3f)*100 or deg(vector3d*100) because it gives the
     // same result with the fewest multiplications. Even though it may look like a bug, it is intentional. See issue 4895.
+    //返回321-在厘度中固有的欧拉角表示从内德地球到态度控制器的目标态度。
+	//注意，使用vector3f deg（100）比deg（vector3f）100或deg（vector3d 100）更有效，因为它提供了相同的结果是最少的乘法。
+	//尽管它看起来像个bug，但它是有意的。看到发行4895。
     Vector3f get_att_target_euler_cd() const { return _attitude_target_euler_angle*degrees(100.0f); }
 
     // Return the angle between the target thrust vector and the current thrust vector.

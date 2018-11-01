@@ -114,12 +114,19 @@ AP_AHRS_DCM::matrix_update(float _G_Dt)
     // and including the P terms would give positive feedback into
     // the _P_gain() calculation, which can lead to a very large P
     // value
+    //注意，我们没有在omega中包含P项。
+	//这是因为spinrate是从omega.length（）中计算出来的，
+	//包括P项将给予积极的反馈
+	//p增益（）计算，它可以导致一个非常大的P值
     _omega.zero();
 
     // average across first two healthy gyros. This reduces noise on
     // systems with more than one gyro. We don't use the 3rd gyro
     // unless another is unhealthy as 3rd gyro on PH2 has a lot more
     // noise
+    //平均在前两个健康的陀螺。这减少了噪音
+	//具有多个陀螺仪的系统。我们不使用第三个陀螺仪
+	//除非另一个不健康，因为PH2上的第三个陀螺仪有更多的东西噪音
     uint8_t healthy_count = 0;
     Vector3f delta_angle;
     for (uint8_t i=0; i<_ins.get_gyro_count(); i++) {
@@ -256,20 +263,43 @@ AP_AHRS_DCM::renorm(Vector3f const &a, Vector3f &result)
     // we would like to avoid these if possible, if it does happen
     // we don't want to compound the error by making DCM less
     // accurate.
+	//数值误差会随着时间的推移慢慢积累，
+	//造成错误。我们可以在这些错误中保持领先
+	//使用DCM IMU纸上的重正化技术
+	//（见第18至21条）。
+	
+	//对于APM，我们不关心泰勒的扩展
+	//从纸张上对我们的2560 CPU的成本进行优化
+	//sqrt（）是44微秒，节省的时间很少
+	//泰勒的扩展不值得
+	//额外的错误累积。
+	
+	//注意，我们可以获得显著的再化值
+	//当我们有一个更大的deltat时由于一个小故障
+	//APM，比如I2c超时或一组EEPROM。
+	//如果可能的话，我们希望尽量避免这些情况发生。
+	//我们不想通过使DCM更少来加重这个错误
+	//准确。
 
     renorm_val = 1.0f / a.length();
 
     // keep the average for reporting
+    //保持报告的平均水平
     _renorm_val_sum += renorm_val;
     _renorm_val_count++;
 
     if (!(renorm_val < 2.0f && renorm_val > 0.5f)) {
         // this is larger than it should get - log it as a warning
+        //这个比它应该得到的要大——把它作为一个警告记录下来
         if (!(renorm_val < 1.0e6f && renorm_val > 1.0e-6f)) {
             // we are getting values which are way out of
             // range, we will reset the matrix and hope we
             // can recover our attitude using drift
             // correction before we hit the ground!
+            //我们得到的价值是远远超出的
+			//范围，我们将重置矩阵并希望我们
+			//可以用漂移来恢复我们的态度
+			//在我们落地之前纠正！
             //Serial.printf("ERROR: DCM renormalisation error. renorm_val=%f\n",
             //	   renorm_val);
             return false;
@@ -290,6 +320,18 @@ AP_AHRS_DCM::renorm(Vector3f const &a, Vector3f &result)
  *  simple matter to stay ahead of it.
  *  We call the process of enforcing the orthogonality conditions �renormalization�.
  */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+方向余弦矩阵IMU：理论
+William Premerlani和Paul Bizard
+*
+数值误差将逐渐减少方程5所表达的正交条件
+是近似而不是身份。
+实际上，这两个参考系中的轴是不
+更长的描述一个刚体。
+幸运的是，数值误差非常缓慢，所以它是a
+简单的事情要保持在它的前面。
+我们称之为强制条件重新正规化的过程。
+*/
 void
 AP_AHRS_DCM::normalize(void)
 {
@@ -307,6 +349,8 @@ AP_AHRS_DCM::normalize(void)
             !renorm(t2, _dcm_matrix.c)) {
         // Our solution is blowing up and we will force back
         // to last euler angles
+        //我们的解决方案正在爆炸，我们将会强制返回
+		//最后一个欧拉角
         _last_failure_ms = AP_HAL::millis();
         AP_AHRS_DCM::reset(true);
     }
@@ -439,6 +483,9 @@ bool AP_AHRS_DCM::use_compass(void)
 // yaw drift correction using the compass or GPS
 // this function prodoces the _omega_yaw_P vector, and also
 // contributes to the _omega_I.z long term yaw drift estimate
+//偏航漂移修正使用罗盘或GPS
+//这个函数提供了omega偏航矢量，以及
+//对omegai有贡献。z长期偏航漂移估计
 void
 AP_AHRS_DCM::drift_correction_yaw(void)
 {
@@ -456,6 +503,9 @@ AP_AHRS_DCM::drift_correction_yaw(void)
             // we force an additional compass read()
             // here. This has the effect of throwing away
             // the first compass value, which can be bad
+            //我们强制增加一个罗盘读数（）
+			//在这里。这就产生了扔掉的效果
+			//第一个罗盘值，可能是坏的
             if (!_flags.have_initial_yaw && _compass->read()) {
                 float heading = _compass->calculate_heading(_dcm_matrix);
                 _dcm_matrix.from_euler(roll, pitch, heading);
@@ -581,6 +631,13 @@ Vector3f AP_AHRS_DCM::ra_delayed(uint8_t instance, const Vector3f &ra)
 // This drift correction implementation is based on a paper
 // by Bill Premerlani from here:
 //   http://gentlenav.googlecode.com/files/RollPitchDriftCompensation.pdf
+//执行漂移修正。这个函数的目的是更新omegap和
+//omegai对短期和长期的最佳估计陀螺误差。omegap值是吸引我们态度解决方案的原因
+//快速回到参考向量。omegai项是
+//尝试了解陀螺的长期漂移率。
+//这个漂移修正的实现是基于一篇论文
+//Bill Premerlani来自这里：
+// http://gentlenav.googlecode.com/files/RollPitchDriftCompensation.pdf
 void
 AP_AHRS_DCM::drift_correction(float deltat)
 {
@@ -589,9 +646,11 @@ AP_AHRS_DCM::drift_correction(float deltat)
 
     // perform yaw drift correction if we have a new yaw reference
     // vector
+    // 如果我们有一个新的偏航参考向量，执行偏航漂移修正
     drift_correction_yaw();
 
     // rotate accelerometer values into the earth frame
+    // 将加速度计值旋转到地球框架中
     for (uint8_t i=0; i<_ins.get_accel_count(); i++) {
         if (_ins.get_accel_health(i)) {
             /*
@@ -599,6 +658,11 @@ AP_AHRS_DCM::drift_correction(float deltat)
               accel value is sampled over the right time delta for
               each sensor, which prevents an aliasing effect
              */
+             /*
+				通过使用getdeltavelocity（）而不是getaccel（）
+				在正确的时间点上对accel值进行采样
+				每个传感器，可以防止混叠效果
+			*/
             Vector3f delta_velocity;
             float delta_velocity_dt;
             _ins.get_delta_velocity(i, delta_velocity);
