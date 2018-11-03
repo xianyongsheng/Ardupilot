@@ -30,4 +30,5 @@
  *      HAL/board/Chibios.h
  *      motores_class.h
  *      GCS_commin.cpp for send_servo_output_raw
+ *      add imu heat control
  */

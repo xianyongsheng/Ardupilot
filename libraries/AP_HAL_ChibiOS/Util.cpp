@@ -133,11 +133,62 @@ void Util::set_imu_temp(float current)
 
     iomcu.set_heater_duty_cycle(output);
 #endif // HAL_WITH_IO_MCU && HAL_HAVE_IMU_HEATER
+#if HAL_GPIO_D_IMU_HEAT_PIN && HAL_HAVE_IMU_HEATER
+    if (!heater.target || *heater.target == -1) {
+        return;
+    }
+
+    // average over temperatures to remove noise
+    heater.count++;
+    heater.sum += current;
+
+    // update once a second
+    uint32_t now = AP_HAL::millis();
+
+    static uint8_t period;
+    static uint8_t cnt;
+    if(cnt++ > period){
+        hal.gpio->write(HAL_GPIO_D_IMU_HEAT_PIN,    0);//stop heat
+    }else{
+        hal.gpio->write(HAL_GPIO_D_IMU_HEAT_PIN,     1);//heat
+    }
+    if(cnt >= 10) cnt=0;
+
+    if (now - heater.last_update_ms < 1000) {
+        return;
+    }
+    heater.last_update_ms = now;
+
+    current = heater.sum / heater.count;
+    heater.sum = 0;
+    heater.count = 0;
+
+    // experimentally tweaked for Pixhawk2
+    const float kI = 0.5f;
+    const float kP = 2.5f;
+    float target = (float)(*heater.target);
+
+    // limit to 65 degrees to prevent damage
+    target = constrain_float(target, 0, 65);
+
+    float err = target - current;
+
+    heater.integrator += kI * err;
+    heater.integrator = constrain_float(heater.integrator, 0, 7);
+
+    //float output = constrain_float(kP * err + heater.integrator, 0, 100);
+    period = constrain_float(kP * err + heater.integrator, 0, 10);
+
+    //hal.console->printf("#err = %0.2f period = %d ,int = %0.1f \n",err,period,heater.integrator);
+#endif
 }
 
 void Util::set_imu_target_temp(int8_t *target)
 {
 #if HAL_WITH_IO_MCU && HAL_HAVE_IMU_HEATER
+    heater.target = target;
+#endif
+#if HAL_GPIO_D_IMU_HEAT_PIN && HAL_HAVE_IMU_HEATER
     heater.target = target;
 #endif
 }

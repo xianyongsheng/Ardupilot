@@ -64,7 +64,7 @@ private:
     void* try_alloc_from_ccm_ram(size_t size);
     uint32_t available_memory_in_ccm_ram(void);
 
-#if HAL_WITH_IO_MCU && HAL_HAVE_IMU_HEATER
+#if (HAL_WITH_IO_MCU && HAL_HAVE_IMU_HEATER) || HAL_GPIO_D_IMU_HEAT_PIN
     struct {
         int8_t *target;
         float integrator;
