@@ -15,3 +15,19 @@
 #define FW_MINOR 6
 #define FW_PATCH 0
 #define FW_TYPE FIRMWARE_VERSION_TYPE_OFFICIAL
+
+
+/*
+ *
+ *
+ *
+ * 2018.11.3
+ *  modify
+ *      waf scripting for copy bin file
+ *      hwdef for first board change
+ *      baro init detect
+ *      mpu init detect
+ *      HAL/board/Chibios.h
+ *      motores_class.h
+ *      GCS_commin.cpp for send_servo_output_raw
+ */

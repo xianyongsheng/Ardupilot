@@ -759,8 +759,10 @@ AP_InertialSensor::detect_backends(void)
     case AP_BoardConfig::PX4_BOARD_PIXRACER:
         // only do fast samplng on ICM-20608. The MPU9250 doesn't handle high rate well when it has a mag enabled
         _fast_sampling_mask.set_default(1);
-        ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_ICM20608_NAME), ROTATION_ROLL_180_YAW_90));
-        ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_MPU9250_NAME), ROTATION_ROLL_180_YAW_90));
+        //ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_ICM20608_NAME), ROTATION_ROLL_180_YAW_90));
+        //ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_MPU9250_NAME), ROTATION_ROLL_180_YAW_90));
+        ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_MPU6500_NAME1), ROTATION_YAW_270));
+        ADD_BACKEND(AP_InertialSensor_Invensense::probe(*this, hal.spi->get_device(HAL_INS_MPU6500_NAME2), ROTATION_YAW_180));
         break;
 
     case AP_BoardConfig::PX4_BOARD_PIXHAWK_PRO:
