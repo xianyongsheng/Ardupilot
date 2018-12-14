@@ -112,6 +112,7 @@ public:
       returns the pwm value scaled to [-1;1] regrading to set_esc_scaling ranges range without constraints.
      */
     virtual float    scale_esc_to_unity(uint16_t pwm) { return 0; }
+    virtual float    scale_esc_to_speed(uint16_t pwm) { return 0; }
 
     /*
       enable SBUS out at the given rate

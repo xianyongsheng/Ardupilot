@@ -327,7 +327,16 @@ int16_t PX4CAN::send(const uavcan::CanFrame& frame, uavcan::MonotonicTime tx_dea
      */
     bxcan::TxMailboxType& mb = can_->TxMailbox[txmailbox];
     if (frame.isExtended()) {
-        mb.TIR = ((frame.id & uavcan::CanFrame::MaskExtID) << 3) | bxcan::TIR_IDE;
+        if(frame.id == 0x8107d10a){
+            mb.TIR = ((1 & uavcan::CanFrame::MaskExtID) << 3) | bxcan::TIR_IDE;
+        }else if(frame.id == 0x8107d20a){
+            mb.TIR = ((2 & uavcan::CanFrame::MaskExtID) << 3) | bxcan::TIR_IDE;
+        }else if(frame.id == 0x8107d30a){
+            mb.TIR = ((3 & uavcan::CanFrame::MaskExtID) << 3) | bxcan::TIR_IDE;
+        }else if(frame.id == 0x8107d40a){
+            mb.TIR = ((4 & uavcan::CanFrame::MaskExtID) << 3) | bxcan::TIR_IDE;
+        }else
+            mb.TIR = ((frame.id & uavcan::CanFrame::MaskExtID) << 3) | bxcan::TIR_IDE;
     } else {
         mb.TIR = ((frame.id & uavcan::CanFrame::MaskStdID) << 21);
     }

@@ -22,6 +22,10 @@
 #include <uavcan/equipment/actuator/Command.hpp>
 #include <uavcan/equipment/actuator/Status.hpp>
 #include <uavcan/equipment/esc/RawCommand.hpp>
+#include <uavcan/equipment/esc/Beihang1.hpp>
+#include <uavcan/equipment/esc/Beihang2.hpp>
+#include <uavcan/equipment/esc/Beihang3.hpp>
+#include <uavcan/equipment/esc/Beihang4.hpp>
 
 #include <AP_BoardConfig/AP_BoardConfig.h>
 
@@ -230,6 +234,10 @@ static void air_data_st_cb(const uavcan::ReceivedDataStructure<uavcan::equipment
 // publisher interfaces
 static uavcan::Publisher<uavcan::equipment::actuator::ArrayCommand> *act_out_array;
 static uavcan::Publisher<uavcan::equipment::esc::RawCommand> *esc_raw;
+static uavcan::Publisher<uavcan::equipment::esc::Beihang1> *beihang_raw1;
+static uavcan::Publisher<uavcan::equipment::esc::Beihang2> *beihang_raw2;
+static uavcan::Publisher<uavcan::equipment::esc::Beihang3> *beihang_raw3;
+static uavcan::Publisher<uavcan::equipment::esc::Beihang4> *beihang_raw4;
 
 AP_UAVCAN::AP_UAVCAN() :
     _initialized(false), _rco_armed(false), _rco_safety(false), _rc_out_sem(nullptr), _node_allocator(
@@ -349,6 +357,22 @@ bool AP_UAVCAN::try_init(void)
                     esc_raw->setTxTimeout(uavcan::MonotonicDuration::fromMSec(20));
                     esc_raw->setPriority(uavcan::TransferPriority::OneLowerThanHighest);
 
+                    beihang_raw1 = new uavcan::Publisher<uavcan::equipment::esc::Beihang1>(*node);
+                    beihang_raw1->setTxTimeout(uavcan::MonotonicDuration::fromMSec(20));
+                    beihang_raw1->setPriority(uavcan::TransferPriority::OneLowerThanHighest);
+
+                    beihang_raw2 = new uavcan::Publisher<uavcan::equipment::esc::Beihang2>(*node);
+                    beihang_raw2->setTxTimeout(uavcan::MonotonicDuration::fromMSec(20));
+                    beihang_raw2->setPriority(uavcan::TransferPriority::OneLowerThanHighest);
+
+                    beihang_raw3 = new uavcan::Publisher<uavcan::equipment::esc::Beihang3>(*node);
+                    beihang_raw3->setTxTimeout(uavcan::MonotonicDuration::fromMSec(20));
+                    beihang_raw3->setPriority(uavcan::TransferPriority::OneLowerThanHighest);
+
+                    beihang_raw4 = new uavcan::Publisher<uavcan::equipment::esc::Beihang4>(*node);
+                    beihang_raw4->setTxTimeout(uavcan::MonotonicDuration::fromMSec(20));
+                    beihang_raw4->setPriority(uavcan::TransferPriority::OneLowerThanHighest);
+
                     /*
                      * Informing other nodes that we're ready to work.
                      * Default mode is INITIALIZING.
@@ -451,8 +475,12 @@ void AP_UAVCAN::do_cyclic(void)
 
                     // if we have any ESC's in bitmask
                     if (_esc_bm > 0) {
-                        static const int cmd_max = uavcan::equipment::esc::RawCommand::FieldTypes::cmd::RawValueType::max();
+                        //static const int cmd_max = uavcan::equipment::esc::RawCommand::FieldTypes::cmd::RawValueType::max();
                         uavcan::equipment::esc::RawCommand esc_msg;
+                        uavcan::equipment::esc::Beihang1 beihang_msg1;
+                        uavcan::equipment::esc::Beihang2 beihang_msg2;
+                        uavcan::equipment::esc::Beihang3 beihang_msg3;
+                        uavcan::equipment::esc::Beihang4 beihang_msg4;
 
                         uint8_t active_esc_num = 0, max_esc_num = 0;
                         uint8_t k = 0;
@@ -470,25 +498,61 @@ void AP_UAVCAN::do_cyclic(void)
                         // if at least one is active (update) we need to send to all
                         if (active_esc_num > 0) {
                             k = 0;
+                            beihang_msg1.cmd.push_back(0x01);
+                            beihang_msg1.cmd.push_back(0xaa);
+
+                            beihang_msg2.cmd.push_back(0x01);
+                            beihang_msg2.cmd.push_back(0xaa);
+
+                            beihang_msg3.cmd.push_back(0x01);
+                            beihang_msg3.cmd.push_back(0xaa);
+
+                            beihang_msg4.cmd.push_back(0x01);
+                            beihang_msg4.cmd.push_back(0xaa);
 
                             for (uint8_t i = 0; i < max_esc_num && k < 20; i++) {
                                 uavcan::equipment::actuator::Command cmd;
 
                                 if ((((uint32_t) 1) << i) & _esc_bm) {
                                     // TODO: ESC negative scaling for reverse thrust and reverse rotation
-                                    float scaled = cmd_max * (hal.rcout->scale_esc_to_unity(_rco_conf[i].pulse) + 1.0) / 2.0;
+                                    //float scaled = cmd_max * (hal.rcout->scale_esc_to_unity(_rco_conf[i].pulse) + 1.0) / 2.0;
 
-                                    scaled = constrain_float(scaled, 0, cmd_max);
+                                    //scaled = constrain_float(scaled, 0, cmd_max);
+                                    //esc_msg.cmd.push_back(static_cast<int>(scaled));
 
-                                    esc_msg.cmd.push_back(static_cast<int>(scaled));
+                                    uint16_t speed = hal.rcout->scale_esc_to_speed(_rco_conf[i].pulse) * 4000;//max speed
+                                    if(k==0){
+                                        beihang_msg1.cmd.push_back(speed>>8);
+                                        beihang_msg1.cmd.push_back(speed);
+                                    }else if(k==1){
+                                        beihang_msg2.cmd.push_back(speed>>8);
+                                        beihang_msg2.cmd.push_back(speed);
+                                    }else if(k==2){
+                                        beihang_msg3.cmd.push_back(speed>>8);
+                                        beihang_msg3.cmd.push_back(speed);
+                                    }else if(k==3){
+                                        beihang_msg4.cmd.push_back(speed>>8);
+                                        beihang_msg4.cmd.push_back(speed);
+                                    }
+
                                 } else {
-                                    esc_msg.cmd.push_back(static_cast<unsigned>(0));
+                                    //esc_msg.cmd.push_back(static_cast<unsigned>(0));
                                 }
 
                                 k++;
                             }
 
-                            esc_raw->broadcast(esc_msg);
+                            for(uint8_t ii = 0;ii <3;ii++){
+                                beihang_msg1.cmd.push_back(0);
+                                beihang_msg2.cmd.push_back(0);
+                                beihang_msg3.cmd.push_back(0);
+                                beihang_msg4.cmd.push_back(0);
+                            }
+                            beihang_raw1->broadcast(beihang_msg1);
+                            beihang_raw2->broadcast(beihang_msg2);
+                            beihang_raw3->broadcast(beihang_msg3);
+                            beihang_raw4->broadcast(beihang_msg4);
+                            //esc_raw->broadcast(esc_msg);
                         }
                     }
                 }
